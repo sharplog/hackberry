@@ -68,7 +68,7 @@ type StateMachine struct{
 	runStatus int
 	
 	// initial state
-	initialState *State
+	initialStateID string
 	
 	// current state
 	currentState *State
@@ -113,7 +113,7 @@ type StateMachine struct{
 	timeoutEvent Event
 	
 	// default state when timeout
-	defaultTimeoutState *State
+	defaultTimeoutStateID string
 	
 	// the channel to cancel timeout
 	timeoutChannel chan int
@@ -151,8 +151,8 @@ func (sm *StateMachine) AddState(s *State) *StateMachine{
 }
 
 // add some states to state machine
-func (sm *StateMachine) AddStates(ss *[]*State) *StateMachine{
-	for _, s := range *ss{
+func (sm *StateMachine) AddStates(ss []*State) *StateMachine{
+	for _, s := range ss{
 		sm.states[(*s).ID()] = s
 	}
 	return sm
@@ -172,41 +172,39 @@ func (sm *StateMachine) AddTransition(t Transition) *StateMachine{
 }
 
 // add entry action to state machine. There should be action executor first.
-func (sm *StateMachine) AddOnEntry(s State, a Action) *StateMachine{
+func (sm *StateMachine) AddOnEntry(stateID string, a Action) *StateMachine{
 	if sm.actionExecutor == nil {
 		panic(&ConfigError{"Has no action executor."})
 	}
 
-	l := append(sm.entryActions[s.ID()], a)
-	sm.entryActions[s.ID()] = l;
+	l := append(sm.entryActions[stateID], a)
+	sm.entryActions[stateID] = l;
 	
 	return sm;
 }
 
 // add exit action to state machine. There should be action executor first.
-func (sm *StateMachine) AddOnExit(s State, a Action) *StateMachine{
+func (sm *StateMachine) AddOnExit(stateID string, a Action) *StateMachine{
 	if sm.actionExecutor == nil {
 		panic(&ConfigError{"Has no action executor."})
 	}
 
-	l := append(sm.exitActions[s.ID()], a)
-	sm.exitActions[s.ID()] = l;
+	l := append(sm.exitActions[stateID], a)
+	sm.exitActions[stateID] = l;
 	
 	return sm;
 }
 
 // add timeout to state machine. The timeout event should be set first.
 // seconds should be greater than zero.
-func (sm *StateMachine) AddTimeout(s State, seconds int) *StateMachine{
-	if seconds <= 0 {
-		return sm
-	}
-	
+func (sm *StateMachine) AddTimeout(stateID string, seconds int) *StateMachine{
 	if sm.timeoutEvent == nil {
 		panic(&ConfigError{"Has no timeout event."})
 	}
 	
-	sm.timeouts[s.ID()] = seconds
+	if seconds > 0 {
+		sm.timeouts[stateID] = seconds
+	}
 	
 	return sm;
 }
@@ -217,37 +215,31 @@ func (sm *StateMachine) SendEvent(event *Event){
 	defer func(){ sm.locker.Lock() }()
 	
 	if !sm.IsRunning() { return }
-
-	var target *State
-	eventName := (*event).Name()
 	
-	var transition *Transition
+	if target := sm.getTarget(event); target != nil {
+		sm.transitState(event, target);
+	}
+}
+
+// get target state by event. lock before call this method
+func (sm *StateMachine) getTarget(event *Event) *State{
 	trans := sm.transitions[(*sm.currentState).ID()]
 	for _, t := range trans{
-		if eventName != t.eventName { continue }
+		if (*event).Name() != t.eventName { continue }
 		
 		// has condition, but not satisfy
 		if "" != t.condition && !sm.conditionEvaluator.IsSatisfied(t.condition, sm.context) {
 			continue
 		}	
 		
-		transition = &t
-		break
+		return sm.states[t.targetID]
 	}
 	
-	// no transition
-	if transition == nil {
-		// default timeout transition
-		if sm.timeoutEvent != nil && sm.timeoutEvent.Name() == eventName && sm.defaultTimeoutState != nil {
-			target = sm.defaultTimeoutState;
-		} else {
-			return
-		}	
-	} else {
-		target = sm.states[transition.targetID]
+	// default timeout transition
+	if sm.timeoutEvent != nil || sm.timeoutEvent.Name() == (*event).Name() {
+		return sm.states[sm.defaultTimeoutStateID]
 	}
-	
-	sm.transitState(event, target);
+	return nil
 }
 
 // transform state machine to new state
@@ -310,8 +302,8 @@ func (sm *StateMachine) cancelTimeout() {
 }
 
 // set state machine's initial state
-func (sm *StateMachine) SetInitialState(stateID string) *StateMachine{
-	sm.initialState = sm.states[stateID]
+func (sm *StateMachine) SetInitialStateID(stateID string) *StateMachine{
+	sm.initialStateID = stateID
 	return sm
 }
 
@@ -325,7 +317,7 @@ func (sm *StateMachine) Start(){
 	sm.locker.Lock()
 	defer func(){ sm.locker.Lock() }()
 	
-	sm.transitState(nil, sm.initialState);
+	sm.transitState(nil, sm.states[sm.initialStateID]);
 	sm.runStatus = STATUS_RUNNING;
 }
 
@@ -355,8 +347,8 @@ func (sm *StateMachine) SetTimeoutEvent(event Event) *StateMachine{
 }
 
 // should add timeout state to state machine first
-func (sm *StateMachine) SetDefaultTimeoutState(stateID string) *StateMachine{
-	sm.defaultTimeoutState = sm.states[stateID]
+func (sm *StateMachine) SetDefaultTimeoutStateID(stateID string) *StateMachine{
+	sm.defaultTimeoutStateID = stateID
 	return sm
 }
 
