@@ -321,7 +321,7 @@ func (sm *StateMachine) Start(){
 	sm.runStatus = STATUS_RUNNING;
 }
 
-// stop state machine, it will not recieve event 
+// stop state machine, it will not receive event 
 func (sm *StateMachine) Stop(){
 	sm.locker.Lock()
 	defer sm.locker.Unlock()
