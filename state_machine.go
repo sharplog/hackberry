@@ -212,7 +212,7 @@ func (sm *StateMachine) AddTimeout(stateID string, seconds int) *StateMachine{
 // send event to state machine, trigger state transform.
 func (sm *StateMachine) SendEvent(event *Event){
 	sm.locker.Lock()
-	defer func(){ sm.locker.Lock() }()
+	defer sm.locker.Unlock()
 	
 	if !sm.IsRunning() { return }
 	
@@ -315,7 +315,7 @@ func (sm *StateMachine) LoadConfig(configurer *Configurer){
 // start state machine, transform its state to initial state
 func (sm *StateMachine) Start(){
 	sm.locker.Lock()
-	defer func(){ sm.locker.Lock() }()
+	defer sm.locker.Unlock()
 	
 	sm.transitState(nil, sm.states[sm.initialStateID]);
 	sm.runStatus = STATUS_RUNNING;
@@ -324,7 +324,7 @@ func (sm *StateMachine) Start(){
 // stop state machine, it will not recieve event 
 func (sm *StateMachine) Stop(){
 	sm.locker.Lock()
-	defer func(){ sm.locker.Lock() }()
+	defer sm.locker.Unlock()
 	
 	// exit from the last state
 	sm.transitState(nil, nil);
