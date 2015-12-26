@@ -145,15 +145,15 @@ func (sm *StateMachine) GetContext() *Context{
 }
 
 // add state to state machine
-func (sm *StateMachine) AddState(s *State) *StateMachine{
-	sm.states[(*s).ID()] = s
+func (sm *StateMachine) AddState(s State) *StateMachine{
+	sm.states[s.ID()] = &s
 	return sm
 }
 
 // add some states to state machine
-func (sm *StateMachine) AddStates(ss []*State) *StateMachine{
-	for _, s := range ss{
-		sm.states[(*s).ID()] = s
+func (sm *StateMachine) AddStates(ss []State) *StateMachine{
+	for i := 0; i < len(ss); i++{
+		sm.states[ss[i].ID()] = &ss[i]
 	}
 	return sm
 }
@@ -210,14 +210,14 @@ func (sm *StateMachine) AddTimeout(stateID string, seconds int) *StateMachine{
 }
 	
 // send event to state machine, trigger state transform.
-func (sm *StateMachine) SendEvent(event *Event){
+func (sm *StateMachine) SendEvent(event Event){
 	sm.locker.Lock()
 	defer sm.locker.Unlock()
 	
 	if !sm.IsRunning() { return }
 	
-	if target := sm.getTarget(event); target != nil {
-		sm.transitState(event, target);
+	if target := sm.getTarget(&event); target != nil {
+		sm.transitState(&event, target);
 	}
 }
 
@@ -234,9 +234,9 @@ func (sm *StateMachine) getTarget(event *Event) *State{
 		
 		return sm.states[t.targetID]
 	}
-	
+
 	// default timeout transition
-	if sm.timeoutEvent != nil || sm.timeoutEvent.Name() == (*event).Name() {
+	if sm.timeoutEvent != nil && sm.timeoutEvent.Name() == (*event).Name() {
 		return sm.states[sm.defaultTimeoutStateID]
 	}
 	return nil
@@ -288,7 +288,7 @@ func (sm *StateMachine) createTimeout(state *State) {
     			return
     		case <-timeout:
     			sm.timeoutChannel = nil
-    			sm.SendEvent(&sm.timeoutEvent)
+    			sm.SendEvent(sm.timeoutEvent)
     	}
 	}()
 }
