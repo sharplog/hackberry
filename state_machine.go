@@ -331,16 +331,6 @@ func (sm *StateMachine) Stop(){
 	sm.runStatus = STATUS_STOPPED;
 }
 
-func (sm *StateMachine) SetConditionEvaluator(evaluator ConditionEvaluator) *StateMachine{
-	sm.conditionEvaluator = evaluator;
-	return sm
-}
-
-func (sm *StateMachine) SetActionExecutor(executor ActionExecutor) *StateMachine{
-	sm.actionExecutor = executor;
-	return sm
-}
-
 func (sm *StateMachine) SetTimeoutEvent(event Event) *StateMachine{
 	sm.timeoutEvent = event
 	return sm
@@ -374,7 +364,7 @@ func (sm *StateMachine) GetEvent() *Event{
 }
 
 // get state machine's all state
-func (sm *StateMachine) GetStates() []*State{
+func (sm *StateMachine) getStates() []*State{
 	states := make([]*State, len(sm.states))
 	
 	i := 0
@@ -386,7 +376,7 @@ func (sm *StateMachine) GetStates() []*State{
 }
 
 // get state by id
-func (sm *StateMachine) GetState(id string) *State{
+func (sm *StateMachine) getState(id string) *State{
 	return sm.states[id]
 }
 
