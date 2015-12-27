@@ -112,3 +112,16 @@ func TestStop(t *testing.T){
 	verifyStateNil(t, "TestStop", sm.GetCurrentState());
 	verifyEventNil(t, "TestStop", sm.GetEvent());
 }
+
+func TestContext(t *testing.T){
+	sm := NewStateMachine(nil, nil)
+	cxt := sm.GetContext()
+	cxt.SetAttribute(1, "abc")
+	cxt.SetAttribute("abc", 1)
+	
+	verify(t, "TestContext", cxt.GetAttribute(1), "abc")
+	verify(t, "TestContext", cxt.GetAttribute("abc"), 1)
+	
+	as := cxt.GetAttributes()
+	verify(t, "TestContext",len(as), 2)
+}

@@ -140,8 +140,8 @@ func NewStateMachine(conditionEvaluator ConditionEvaluator, actionExecutor Actio
 }
 
 // get context of state machine
-func (sm *StateMachine) GetContext() *Context{
-	return &sm.context
+func (sm *StateMachine) GetContext() Context{
+	return sm.context
 }
 
 // add state to state machine
@@ -388,4 +388,25 @@ func (sm *StateMachine) IsRunning() bool {
 // get timeout of one state
 func (sm *StateMachine) GetTimeout(state *State) int {
 	return sm.timeouts[(*state).ID()]
+}
+
+
+// get state machine from its context
+func (c Context) GetStateMachine() *StateMachine{
+	return c.stateMachine
+}
+
+// get state machine from its context
+func (c Context) GetAttributes() map[any]any{
+	return c.attributes
+}
+
+// get attribute from context
+func (c Context) GetAttribute(key any) any{
+	return c.attributes[key]
+}
+
+// set attribute into context
+func (c Context) SetAttribute(key, value any) {
+	c.attributes[key] = value
 }
