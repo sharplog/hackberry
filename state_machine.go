@@ -20,13 +20,13 @@ type Event interface{
 // condition evaluator
 type ConditionEvaluator interface{
 	// state machine call this method
-	IsSatisfied(condition string, context Context) bool
+	IsSatisfied(condition string, context *Context) bool
 }
 
 // action executor
 type ActionExecutor interface{
 	// state machine call this method
-	execute(name string, parameters []any, context Context)
+	execute(name string, parameters []any, context *Context)
 }
 
 // state machine's context
@@ -140,8 +140,8 @@ func NewStateMachine(conditionEvaluator ConditionEvaluator, actionExecutor Actio
 }
 
 // get context of state machine
-func (sm *StateMachine) GetContext() Context{
-	return sm.context
+func (sm *StateMachine) GetContext() *Context{
+	return &sm.context
 }
 
 // add state to state machine
@@ -228,7 +228,7 @@ func (sm *StateMachine) getTarget(event *Event) *State{
 		if (*event).Name() != t.eventName { continue }
 		
 		// has condition, but not satisfy
-		if "" != t.condition && !sm.conditionEvaluator.IsSatisfied(t.condition, sm.context) {
+		if "" != t.condition && !sm.conditionEvaluator.IsSatisfied(t.condition, &sm.context) {
 			continue
 		}	
 		
@@ -253,7 +253,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// exit actions
 		actions := sm.exitActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionExecutor.execute(a.name, a.parameters, sm.context)
+			sm.actionExecutor.execute(a.name, a.parameters, &sm.context)
 		}
 	}
 	
@@ -266,7 +266,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// entry actions
 		actions := sm.entryActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionExecutor.execute(a.name, a.parameters, sm.context)
+			sm.actionExecutor.execute(a.name, a.parameters, &sm.context)
 		}
 		
 		// begin to count time for timeout after all entry actions

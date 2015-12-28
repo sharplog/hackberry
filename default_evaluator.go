@@ -16,12 +16,16 @@ const (
 )
 
 // default condition evaluator
+// condition pattern: {attribute name}{operator}{value}
+// support six operation: =, !=, <, <=, > and >=
+// the type of attribute include: bool, int8, int16, int32, int64, int
+// uint8, uint16, uint32, uint64, uint, float32, float64, string
 type defaultConditionEvaluator struct{
 	
 }
 
-func NewDefaultConditionEvaluator() defaultConditionEvaluator{
-	return defaultConditionEvaluator{}
+func NewDefaultConditionEvaluator() *defaultConditionEvaluator{
+	return &defaultConditionEvaluator{}
 }
 
 func (ce *defaultConditionEvaluator) IsSatisfied(condition string, context *Context) bool{
