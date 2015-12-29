@@ -1,8 +1,9 @@
-package hackberry
+package test
 
 import (
     "testing"
     "reflect"
+    . ".."
 )
 
 var actionTestResult string = ""
@@ -11,7 +12,7 @@ var actionTestResult string = ""
 type testDispatcher struct{
 }	
 
-func (d *testDispatcher) dispatch(a Action, c *Context){
+func (d *testDispatcher) Dispatch(a Action, c *Context){
 	state := c.GetStateMachine().GetCurrentState()
 	event := c.GetStateMachine().GetEvent()
 	
@@ -131,7 +132,7 @@ func TestActionParameters(t *testing.T){
 	sm.SetInitialStateID("s1")
 	sm.AddTransition(Transition{"s1", "s2", "e1", ""})
 	
-	ps := make([]any, 1)
+	ps := make([]Any, 1)
 	ps[0] = "v1"
 	sm.AddOnEntry("s2", Action{"a1", ps})
 	sm.AddOnExit("s1", Action{"a2", ps})

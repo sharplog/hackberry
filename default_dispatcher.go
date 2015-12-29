@@ -7,21 +7,21 @@ import (
 
 // a simple action executor, to dispatch actions
 type defaultActionDispatcher struct{
-	executors map[string]any
+	executors map[string]Any
 }
 
 func NewDefaultActionDispatcher() *defaultActionDispatcher{
-	return &defaultActionDispatcher{make(map[string]any)}
+	return &defaultActionDispatcher{make(map[string]Any)}
 }
 
 // add a action executor to action dispatcher
-func (ad *defaultActionDispatcher)AddActionExecutor(name string, executor any) *defaultActionDispatcher{
+func (ad *defaultActionDispatcher)AddActionExecutor(name string, executor Any) *defaultActionDispatcher{
 	ad.executors[name] = executor
 	return ad
 }
 
 // dispath a action
-func (ad *defaultActionDispatcher)dispatch(a Action, context *Context){
+func (ad *defaultActionDispatcher)Dispatch(a Action, context *Context){
 	names := strings.Split(a.Name, `.`)
 	if len(names) != 2 {
 		panic(&IllegalActionError{"Action name format should be like objname.method, but [" + a.Name + "]."})

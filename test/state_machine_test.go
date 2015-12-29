@@ -1,7 +1,8 @@
-package hackberry
+package test
 
 import (
     "testing"
+    . ".."
 )
 
 // customized State
@@ -22,7 +23,7 @@ func (e *myEvent) Name() string{
 	return e.name
 }
 
-func verify(t *testing.T, fun string, output, expected any){
+func verify(t *testing.T, fun string, output, expected Any){
 	if output != expected {
         t.Errorf("%s: output %v != %v", fun, output, expected)
     }	

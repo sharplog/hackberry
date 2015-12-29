@@ -1,7 +1,8 @@
-package hackberry
+package test
 
 import (
     "testing"
+    . ".."
 )
 
 func TestEvaluator(t *testing.T) {

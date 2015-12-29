@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-type any interface{}
+type Any interface{}
 
 // state machine's state
 type State interface{
@@ -26,35 +26,35 @@ type ConditionEvaluator interface{
 // action dispatcher
 type ActionDispatcher interface{
 	// state machine call this method
-	dispatch(action Action, context *Context)
+	Dispatch(action Action, context *Context)
 }
 
 // state machine's context
 type Context struct{
 	stateMachine *StateMachine
 	
-	attributes map[any]any
+	attributes map[Any]Any
 }
 
 // transition
 type Transition struct{
 	// source state id
-	sourceID string
+	SourceID string
 	
 	// target state id
-	targetID string
+	TargetID string
 	
 	// event name
-	eventName string
+	EventName string
 	
 	// condition to transfer
-	condition string
+	Condition string
 }
 
 // action
 type Action struct{
 	Name string
-	Parameters []any
+	Parameters []Any
 }	
 
 // status of state machine
@@ -64,7 +64,7 @@ const (
 )
 
 type StateMachine struct{
-	// status，receive event only when running status
+	// status, receive event only when running status
 	runStatus int
 	
 	// initial state
@@ -126,7 +126,7 @@ type StateMachine struct{
 func NewStateMachine(conditionEvaluator ConditionEvaluator, actionDispatcher ActionDispatcher) *StateMachine {
 	sm := StateMachine{}
 	
-	sm.context = Context{&sm, make(map[any]any)}
+	sm.context = Context{&sm, make(map[Any]Any)}
 	sm.states = make(map[string]*State)
 	sm.transitions = make(map[string][]Transition)
 	sm.entryActions = make(map[string][]Action)
@@ -161,12 +161,12 @@ func (sm *StateMachine) AddStates(ss []State) *StateMachine{
 // add transition to state machine. 
 // If transition has condition, there should be condition evaluator first.
 func (sm *StateMachine) AddTransition(t Transition) *StateMachine{
-	if t.condition != "" && sm.conditionEvaluator == nil {
+	if t.Condition != "" && sm.conditionEvaluator == nil {
 		panic(&ConfigError{"Has no condition evaluator."})
 	}
 
-	l := append(sm.transitions[t.sourceID], t)
-	sm.transitions[t.sourceID] = l
+	l := append(sm.transitions[t.SourceID], t)
+	sm.transitions[t.SourceID] = l
 	
 	return sm;
 }
@@ -225,14 +225,14 @@ func (sm *StateMachine) SendEvent(event Event){
 func (sm *StateMachine) getTarget(event *Event) *State{
 	trans := sm.transitions[(*sm.currentState).ID()]
 	for _, t := range trans{
-		if (*event).Name() != t.eventName { continue }
+		if (*event).Name() != t.EventName { continue }
 		
 		// has condition, but not satisfy
-		if "" != t.condition && !sm.conditionEvaluator.IsSatisfied(t.condition, &sm.context) {
+		if "" != t.Condition && !sm.conditionEvaluator.IsSatisfied(t.Condition, &sm.context) {
 			continue
 		}	
 		
-		return sm.states[t.targetID]
+		return sm.states[t.TargetID]
 	}
 
 	// default timeout transition
@@ -253,7 +253,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// exit actions
 		actions := sm.exitActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionDispatcher.dispatch(a, &sm.context)
+			sm.actionDispatcher.Dispatch(a, &sm.context)
 		}
 	}
 	
@@ -266,7 +266,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// entry actions
 		actions := sm.entryActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionDispatcher.dispatch(a, &sm.context)
+			sm.actionDispatcher.Dispatch(a, &sm.context)
 		}
 		
 		// begin to count time for timeout after all entry actions
@@ -397,16 +397,16 @@ func (c Context) GetStateMachine() *StateMachine{
 }
 
 // get state machine from its context
-func (c Context) GetAttributes() map[any]any{
+func (c Context) GetAttributes() map[Any]Any{
 	return c.attributes
 }
 
 // get attribute from context
-func (c Context) GetAttribute(key any) any{
+func (c Context) GetAttribute(key Any) Any{
 	return c.attributes[key]
 }
 
 // set attribute into context
-func (c Context) SetAttribute(key, value any) {
+func (c Context) SetAttribute(key, value Any) {
 	c.attributes[key] = value
 }
