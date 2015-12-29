@@ -26,7 +26,7 @@ type ConditionEvaluator interface{
 // action dispatcher
 type ActionDispatcher interface{
 	// state machine call this method
-	dispatch(name string, parameters []any, context *Context)
+	dispatch(action Action, context *Context)
 }
 
 // state machine's context
@@ -53,8 +53,8 @@ type Transition struct{
 
 // action
 type Action struct{
-	name string
-	parameters []any
+	Name string
+	Parameters []any
 }	
 
 // status of state machine
@@ -253,7 +253,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// exit actions
 		actions := sm.exitActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionDispatcher.dispatch(a.name, a.parameters, &sm.context)
+			sm.actionDispatcher.dispatch(a, &sm.context)
 		}
 	}
 	
@@ -266,7 +266,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// entry actions
 		actions := sm.entryActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionDispatcher.dispatch(a.name, a.parameters, &sm.context)
+			sm.actionDispatcher.dispatch(a, &sm.context)
 		}
 		
 		// begin to count time for timeout after all entry actions
