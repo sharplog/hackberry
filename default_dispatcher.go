@@ -34,9 +34,8 @@ func (ad *defaultActionDispatcher)Dispatch(a Action, context *Context){
 		panic(&IllegalActionError{"Has no action executor for [" + execName + "]."})
 	}
 	
-	mtv := reflect.ValueOf(executor).Elem()
-	method := mtv.MethodByName(methodName)
-	if method.IsNil() {
+	method := reflect.ValueOf(executor).MethodByName(methodName)
+	if !method.IsValid() {
 		panic(&IllegalActionError{"Has no method [" + a.Name + "]."})
 	}
 	
