@@ -23,10 +23,10 @@ type ConditionEvaluator interface{
 	IsSatisfied(condition string, context *Context) bool
 }
 
-// action executor
-type ActionExecutor interface{
+// action dispatcher
+type ActionDispatcher interface{
 	// state machine call this method
-	execute(name string, parameters []any, context *Context)
+	dispatch(name string, parameters []any, context *Context)
 }
 
 // state machine's context
@@ -106,8 +106,8 @@ type StateMachine struct{
 	// condition evaluator, should been implemented by application
 	conditionEvaluator ConditionEvaluator
 	
-	// action executor, should been implemented by application
-	actionExecutor ActionExecutor
+	// action dispatcher, should been implemented by application
+	actionDispatcher ActionDispatcher
 	
 	// timeout event
 	timeoutEvent Event
@@ -123,7 +123,7 @@ type StateMachine struct{
 }
 
 // create a state machine
-func NewStateMachine(conditionEvaluator ConditionEvaluator, actionExecutor ActionExecutor) *StateMachine {
+func NewStateMachine(conditionEvaluator ConditionEvaluator, actionDispatcher ActionDispatcher) *StateMachine {
 	sm := StateMachine{}
 	
 	sm.context = Context{&sm, make(map[any]any)}
@@ -134,7 +134,7 @@ func NewStateMachine(conditionEvaluator ConditionEvaluator, actionExecutor Actio
 	sm.timeouts = make(map[string]int)
 
 	sm.conditionEvaluator = conditionEvaluator
-	sm.actionExecutor = actionExecutor
+	sm.actionDispatcher = actionDispatcher
 	
 	return &sm;
 }
@@ -173,8 +173,8 @@ func (sm *StateMachine) AddTransition(t Transition) *StateMachine{
 
 // add entry action to state machine. There should be action executor first.
 func (sm *StateMachine) AddOnEntry(stateID string, a Action) *StateMachine{
-	if sm.actionExecutor == nil {
-		panic(&ConfigError{"Has no action executor."})
+	if sm.actionDispatcher == nil {
+		panic(&ConfigError{"Has no action dispatcher."})
 	}
 
 	l := append(sm.entryActions[stateID], a)
@@ -185,8 +185,8 @@ func (sm *StateMachine) AddOnEntry(stateID string, a Action) *StateMachine{
 
 // add exit action to state machine. There should be action executor first.
 func (sm *StateMachine) AddOnExit(stateID string, a Action) *StateMachine{
-	if sm.actionExecutor == nil {
-		panic(&ConfigError{"Has no action executor."})
+	if sm.actionDispatcher == nil {
+		panic(&ConfigError{"Has no action dispatcher."})
 	}
 
 	l := append(sm.exitActions[stateID], a)
@@ -253,7 +253,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// exit actions
 		actions := sm.exitActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionExecutor.execute(a.name, a.parameters, &sm.context)
+			sm.actionDispatcher.dispatch(a.name, a.parameters, &sm.context)
 		}
 	}
 	
@@ -266,7 +266,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 		// entry actions
 		actions := sm.entryActions[(*sm.currentState).ID()]
 		for _, a := range actions {
-			sm.actionExecutor.execute(a.name, a.parameters, &sm.context)
+			sm.actionDispatcher.dispatch(a.name, a.parameters, &sm.context)
 		}
 		
 		// begin to count time for timeout after all entry actions

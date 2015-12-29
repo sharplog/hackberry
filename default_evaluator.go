@@ -15,7 +15,7 @@ const (
 	OPERATOR_GE string = ">="
 )
 
-// default condition evaluator
+// a simple condition evaluator
 // condition pattern: {attribute name}{operator}{value}
 // support six operation: =, !=, <, <=, > and >=
 // the type of attribute include: bool, int8, int16, int32, int64, int
