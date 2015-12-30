@@ -37,7 +37,7 @@ func verifyNil(t *testing.T, fun string, output Any){
     }	
 }
 
-func verifyPanic(t *testing.T, fun string, errType interface{}, expectedMsg string){
+func verifyPanic(t *testing.T, fun string, errType Any, expectedMsg string){
 	msgFeild := "Message"
 	
 	e := recover()
