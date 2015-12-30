@@ -2,6 +2,7 @@ package test
 
 import (
     "testing"
+    "reflect"
     . ".."
 )
 
@@ -29,15 +30,10 @@ func verify(t *testing.T, fun string, output, expected Any){
     }	
 }
 
-func verifyStateNil(t *testing.T, fun string, output *State){
-	if output != nil {
-        t.Errorf("%s: output %v != %v", fun, output, nil)
-    }	
-}
-
-func verifyEventNil(t *testing.T, fun string, output *Event){
-	if output != nil {
-        t.Errorf("%s: output %v != %v", fun, output, nil)
+func verifyNil(t *testing.T, fun string, output Any){
+	v := reflect.ValueOf(output)
+	if v.IsValid() && !v.IsNil() {
+        t.Errorf("%s: output %v is not nil", fun, output)
     }	
 }
 
@@ -77,14 +73,14 @@ func TestStart(t *testing.T){
 	
 	// don't receive event before starting
 	sm.SendEvent(e1)
-	verifyStateNil(t, "TestStart", sm.GetCurrentState())
-	verifyEventNil(t, "TestStart", sm.GetEvent())
+	verifyNil(t, "TestStart", sm.GetCurrentState())
+	verifyNil(t, "TestStart", sm.GetEvent())
 	
 	sm.Start();
 	
 	// after staring, the state is initial state and the event is nil
 	verify(t, "TestStart", (*sm.GetCurrentState()).ID(), "s1")
-	verifyEventNil(t, "TestStart", sm.GetEvent())
+	verifyNil(t, "TestStart", sm.GetEvent())
 	
 	// receive event
 	sm.SendEvent(e1);
@@ -105,13 +101,13 @@ func TestStop(t *testing.T){
 	sm.Stop();
 	
 	// after stopped，state is nil and event is nil
-	verifyStateNil(t, "TestStop", sm.GetCurrentState());
-	verifyEventNil(t, "TestStop", sm.GetEvent());
+	verifyNil(t, "TestStop", sm.GetCurrentState());
+	verifyNil(t, "TestStop", sm.GetEvent());
 	
 	// after stopped, dose not receive event
 	sm.SendEvent(e2);
-	verifyStateNil(t, "TestStop", sm.GetCurrentState());
-	verifyEventNil(t, "TestStop", sm.GetEvent());
+	verifyNil(t, "TestStop", sm.GetCurrentState());
+	verifyNil(t, "TestStop", sm.GetEvent());
 }
 
 func TestContext(t *testing.T){
