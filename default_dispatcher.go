@@ -1,6 +1,7 @@
 package hackberry
 
 import (
+	"fmt"
 	"strings"
 	"reflect"
 )
@@ -39,9 +40,55 @@ func (ad *defaultActionDispatcher)Dispatch(a Action, context *Context){
 		panic(&IllegalActionError{"Has no method [" + a.Name + "]."})
 	}
 	
+	methodS, _ := reflect.TypeOf(executor).MethodByName(methodName)
+	methodT := methodS.Type
+	
+	// NumIn take receiver as the first parameter
+	if methodT.NumIn() - 1 != len(a.Parameters) {
+		panic(&IllegalActionError{"Parameter number is not correct for method [" + a.Name + "]."})
+	}
+	
 	params := make([]reflect.Value, len(a.Parameters))
 	for i, p := range a.Parameters{
-		params[i] = reflect.ValueOf(p)
+		v := transValue(methodT.In(i + 1).Name(), p, a.Name)
+		params[i] = reflect.ValueOf(v)
 	}
 	method.Call(params)
+}
+
+func transValue(name string, v Any, action string) Any{
+	s := fmt.Sprintf("%v", v)
+	switch name{
+		case "bool":
+			return parseBool(s)
+		case "int8":
+			return int8(parseInt(s))
+		case "int16":
+			return int16(parseInt(s))
+		case "int32":
+			return int32(parseInt(s))
+		case "int64":
+			return parseInt(s)
+		case "int":
+			return int(parseInt(s))
+		case "uint8":
+			return uint8(parseUint(s))
+		case "uint16":
+			return uint16(parseUint(s))
+		case "uint32":
+			return uint32(parseUint(s))
+		case "uint64":
+			return parseUint(s)
+		case "uint":
+			return uint(parseUint(s))
+		case "float32":
+			return float32(parseFloat(s))
+		case "float64":
+			return parseFloat(s)
+		case "string":
+			return s
+		default:
+			msg := fmt.Sprintf("Unsupported parameter type [%s] for action [%s].", name, action)
+			panic(&IllegalActionError{msg})	
+	}
 }
