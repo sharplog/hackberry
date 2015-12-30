@@ -29,6 +29,11 @@ type ActionDispatcher interface{
 	Dispatch(action Action, context *Context)
 }
 
+// to load configuration
+type Configurer interface{
+	configure(sm *StateMachine)
+}
+
 // state machine's context
 type Context struct{
 	stateMachine *StateMachine
@@ -308,7 +313,7 @@ func (sm *StateMachine) SetInitialStateID(stateID string) *StateMachine{
 }
 
 // load configuration. Should add all states to state machine before call this, if State is not default Type.
-func (sm *StateMachine) LoadConfig(configurer *Configurer){
+func (sm *StateMachine) LoadConfig(configurer Configurer){
 	configurer.configure(sm);
 }
 
