@@ -55,13 +55,13 @@ func TestStateMachine(t *testing.T) {
 	sm.SetInitialStateID("s1");
 	sm.Start();
 	sm.SendEvent(e1)
-	verify(t, "TestStateMachine", (*sm.GetCurrentState()).ID(), "s2")
+	verify(t, "TestStateMachine 1", (*sm.GetCurrentState()).ID(), "s2")
 	sm.SendEvent(e2)
-	verify(t, "TestStateMachine", (*sm.GetCurrentState()).ID(), "s3")
+	verify(t, "TestStateMachine 2", (*sm.GetCurrentState()).ID(), "s3")
 	sm.SendEvent(e3)
-	verify(t, "TestStateMachine", (*sm.GetCurrentState()).ID(), "s1")
+	verify(t, "TestStateMachine 3", (*sm.GetCurrentState()).ID(), "s1")
 	sm.SendEvent(e1)
-	verify(t, "TestStateMachine", (*sm.GetCurrentState()).ID(), "s2")
+	verify(t, "TestStateMachine 4", (*sm.GetCurrentState()).ID(), "s2")
 }
 
 func TestStart(t *testing.T){
@@ -73,19 +73,19 @@ func TestStart(t *testing.T){
 	
 	// don't receive event before starting
 	sm.SendEvent(e1)
-	verifyNil(t, "TestStart", sm.GetCurrentState())
-	verifyNil(t, "TestStart", sm.GetEvent())
+	verifyNil(t, "TestStart 1", sm.GetCurrentState())
+	verifyNil(t, "TestStart 2", sm.GetEvent())
 	
 	sm.Start();
 	
 	// after staring, the state is initial state and the event is nil
-	verify(t, "TestStart", (*sm.GetCurrentState()).ID(), "s1")
-	verifyNil(t, "TestStart", sm.GetEvent())
+	verify(t, "TestStart 3", (*sm.GetCurrentState()).ID(), "s1")
+	verifyNil(t, "TestStart 4", sm.GetEvent())
 	
 	// receive event
 	sm.SendEvent(e1);
-	verify(t, "TestStart", (*sm.GetCurrentState()).ID(), "s2");
-	verify(t, "TestStart", (*sm.GetEvent()).Name(), "e1")
+	verify(t, "TestStart 5", (*sm.GetCurrentState()).ID(), "s2");
+	verify(t, "TestStart 6", (*sm.GetEvent()).Name(), "e1")
 }
 
 func TestStop(t *testing.T){
@@ -101,13 +101,13 @@ func TestStop(t *testing.T){
 	sm.Stop();
 	
 	// after stopped，state is nil and event is nil
-	verifyNil(t, "TestStop", sm.GetCurrentState());
-	verifyNil(t, "TestStop", sm.GetEvent());
+	verifyNil(t, "TestStop 1", sm.GetCurrentState());
+	verifyNil(t, "TestStop 2", sm.GetEvent());
 	
 	// after stopped, dose not receive event
 	sm.SendEvent(e2);
-	verifyNil(t, "TestStop", sm.GetCurrentState());
-	verifyNil(t, "TestStop", sm.GetEvent());
+	verifyNil(t, "TestStop 3", sm.GetCurrentState());
+	verifyNil(t, "TestStop 4", sm.GetEvent());
 }
 
 func TestContext(t *testing.T){
@@ -116,9 +116,9 @@ func TestContext(t *testing.T){
 	cxt.SetAttribute(1, "abc")
 	cxt.SetAttribute("abc", 1)
 	
-	verify(t, "TestContext", cxt.GetAttribute(1), "abc")
-	verify(t, "TestContext", cxt.GetAttribute("abc"), 1)
+	verify(t, "TestContext 1", cxt.GetAttribute(1), "abc")
+	verify(t, "TestContext 2", cxt.GetAttribute("abc"), 1)
 	
 	as := cxt.GetAttributes()
-	verify(t, "TestContext",len(as), 2)
+	verify(t, "TestContext 3",len(as), 2)
 }
