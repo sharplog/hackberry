@@ -67,12 +67,15 @@ func TestMethodParameter(t *testing.T){
 func TestHasNoActionExecutor(t *testing.T){
 	expected := "Has no action executor for [ao2]."
 	defer func (){
-		if e := recover(); e != nil {
-	        a, b :=e.(*IllegalActionError) 
-	        if !b || a.Message != expected {
-	        	t.Errorf("Has no expected error!%s")
-	        }
+		var a *IllegalActionError
+		var b bool
+		e := recover()
+		if e != nil {
+	        a, b =e.(*IllegalActionError) 
 	    }
+        if e == nil || !b || a.Message != expected {
+        	t.Errorf("TestHasNoActionExecutor: has no expected IllegalActionError[%s]", expected)
+        }
 	}()
 	
 	dispatcher := NewDefaultActionDispatcher()
@@ -88,12 +91,15 @@ func TestHasNoActionExecutor(t *testing.T){
 func TestHasNoActionMethod(t *testing.T){
 	expected := "Has no method [ao1.mm]."
 	defer func (){
-		if e := recover(); e != nil {
-	        a, b :=e.(*IllegalActionError) 
-	        if !b || a.Message != expected {
-	        	t.Errorf("Has no expected error!%s")
-	        }
+		var a *IllegalActionError
+		var b bool
+		e := recover()
+		if e != nil {
+	        a, b =e.(*IllegalActionError) 
 	    }
+        if e == nil || !b || a.Message != expected {
+        	t.Errorf("TestHasNoActionMethod: has no expected IllegalActionError[%s]", expected)
+        }
 	}()
 	
 	dispatcher := NewDefaultActionDispatcher()
