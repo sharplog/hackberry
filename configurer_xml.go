@@ -209,7 +209,17 @@ func parseAction(p *xml.Decoder, e xml.StartElement) Action{
 }
 
 func getParaValue(pType, pValue string) Any{
-	return ""
+	switch pType {
+		case "int":
+			return parseInt(pValue)
+		case "float":
+			return parseFloat(pValue)
+		case "string":
+			return pValue
+		case "bool":
+			return parseBool(pValue)
+	}
+	panic(&ConfigError{"Not support parameter type [" + pType + "]."})
 }
 
 func getAttr(e xml.StartElement, name string) string{
