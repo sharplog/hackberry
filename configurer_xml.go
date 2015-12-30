@@ -16,14 +16,13 @@ import (
 //        <state id="s1">
 //                <!-- 进入状态时执行的动作 -->
 //                <onentry>
-//                        <!-- 有参数的动作，支持6种基本类型的参数 -->
+//                        <!-- 有参数的动作，支持基本类型的参数 -->
 //                        <action name="ao1.m1">
-//                                <para type="string" value="v1" />
-//                                <para type="int" value="1" />
-//                                <para type="float" value="2.3" />
-//                                <para type="boolean">true</para>
-//                                <!-- 缺省类型是string -->
 //                                <para value="v1" />
+//                                <para value="1" />
+//                                <para value="2.3" />
+//                                <para>true</para>
+//                                <para>v1</para>
 //                        </action>
 //                        
 //                        <!-- 无参数的动作 -->
@@ -181,45 +180,30 @@ func parseAction(p *xml.Decoder, e xml.StartElement) Action{
 	a.Name = getAttr(e, "name")
 	a.Parameters = make([]Any, 1)
 	
-	var pType, pValue string
+	var pValue string
+	var inPara bool
     for t, err := p.Token(); err == nil; t, err = p.Token() {
         switch token := t.(type) {
         	case xml.StartElement:
         		if token.Name.Local == "para" {
- 					pType = getAttr(token, "type")
+        			inPara = true
 					pValue = getAttr(token, "value")
-					if pType == "" { pType = "string" }
-					if pValue != "" { 
-						a.Parameters = append(a.Parameters, getParaValue(pType, pValue))
-						pType = ""
-					}	
         		}
         	case xml.CharData:
-        		if pType != "" {
-        			pValue := string([]byte(token))
-        			a.Parameters = append(a.Parameters, getParaValue(pType, pValue))
-        			pType = ""
-        		}	
+        		if inPara {
+        			pValue = string([]byte(token))
+        		}
         	case xml.EndElement:
-        		if token.Name.Local == "action" { break	}
+        		if token.Name.Local == "para" {
+        			a.Parameters = append(a.Parameters, pValue)
+        			inPara = false
+        		}else if token.Name.Local == "action" {
+        			break
+        		}
         }		
 	}
 	
 	return a
-}
-
-func getParaValue(pType, pValue string) Any{
-	switch pType {
-		case "int":
-			return parseInt(pValue)
-		case "float":
-			return parseFloat(pValue)
-		case "string":
-			return pValue
-		case "bool":
-			return parseBool(pValue)
-	}
-	panic(&ConfigError{"Not support parameter type [" + pType + "]."})
 }
 
 func getAttr(e xml.StartElement, name string) string{
