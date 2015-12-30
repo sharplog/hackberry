@@ -4,6 +4,10 @@ import (
 
 )
 
+type ParseError struct{
+	Message string
+}
+
 type ConfigError struct{
 	Message string
 }

@@ -3,7 +3,6 @@ package hackberry
 import (
 	"fmt"
 	"strings"
-	"strconv"
 )
 
 const (
@@ -86,38 +85,6 @@ func getOperator(condition string) string{
 	}
 	
 	panic(&IllegalConditionError{"Unsupported operator of condition [" + condition + "]."})
-}
-
-func parseBool(s string) bool{
-	if b, err := strconv.ParseBool(s); err == nil{
-		return b
-	}else{
-		panic(&IllegalConditionError{"Can't parse bool value in condition [" + s + "]."})
-	}
-}
-
-func parseInt(s string) int64{
-	if i, err := strconv.ParseInt(s, 10, 64); err == nil{
-		return i
-	}else{
-		panic(&IllegalConditionError{"Can't parse int value in condition [" + s + "]."})
-	}
-}
-
-func parseUint(s string) uint64{
-	if u, err := strconv.ParseUint(s, 10, 64); err == nil{
-		return u
-	}else{
-		panic(&IllegalConditionError{"Can't parse uint value in condition [" + s + "]."})
-	}
-}
-
-func parseFloat(s string) float64{
-	if f, err := strconv.ParseFloat(s, 64); err == nil{
-		return f
-	}else{
-		panic(&IllegalConditionError{"Can't parse float value in condition [" + s + "]."})
-	}
 }
 
 func compareBool(v1, v2 bool, op string) bool{
