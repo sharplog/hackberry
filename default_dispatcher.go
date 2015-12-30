@@ -88,7 +88,6 @@ func transValue(name string, v Any, action string) Any{
 		case "string":
 			return s
 		default:
-			msg := fmt.Sprintf("Unsupported parameter type [%s] for action [%s].", name, action)
-			panic(&IllegalActionError{msg})	
+			return v
 	}
 }
