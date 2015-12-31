@@ -4,6 +4,7 @@ import (
 	"os"
 	"bufio"
 	"encoding/xml"
+	"io"
 )
 //<!-- 
 //     initialstate指定状态机的初始状态。
@@ -72,29 +73,40 @@ func (c *ConfigurerXML)configure(sm *StateMachine) {
 	inputReader := bufio.NewReader(input)
 	p := xml.NewDecoder(inputReader)
 	
-	var useDefaultState, scxmlRoot bool = true, false
+	var useDefaultState, scxmlRoot, parseEnd bool = true, false, false
 	var initialStateID, timeoutStateID string
-    for t, err := p.Token(); err == nil; t, err = p.Token() {
+	var t xml.Token
+    for t, err = p.Token(); err == nil && !parseEnd; t, err = p.Token() {
         switch token := t.(type) {
         	case xml.StartElement:
-        		if token.Name.Local == "state" {
-        			if !scxmlRoot {
-						panic(&ConfigError{"Config file's root element name is not scxml."})
-					}
-        			parseState(p, token, sm, useDefaultState)
-        		}else if token.Name.Local == "scxml" {
+        		if token.Name.Local == "scxml" {
         			scxmlRoot = true
 					if v := getAttr(token, "defaultstate"); v != ""{
 						useDefaultState = (v == "true")
 					}	 
 					initialStateID = getAttr(token, "initialstate")
 					timeoutStateID = getAttr(token, "timeoutstate")
-				}
+				}else {
+        			if !scxmlRoot {
+						panic(&ConfigError{"Config file's root element name is not scxml."})
+					}
+	        		if token.Name.Local == "state" {
+	        			parseState(p, token, sm, useDefaultState)
+	        		}
+	        	}
 			case xml.EndElement:
-				if token.Name.Local == "scxml" { break }
+				if token.Name.Local == "scxml" {
+					parseEnd = true
+				}	
         }
     }
     
+    if err != nil && err != io.EOF {
+    	panic(&ConfigError{"Fail to parse config file: " + err.Error()})
+    }
+    if !parseEnd {
+    	panic(&ConfigError{"Fail to parse config file, scxml element has no end. "})
+    }
     if initialStateID != "" && sm.getState(initialStateID) == nil {
     	panic(&ConfigError{"Has no initial state [" + initialStateID + "]."})
     }
@@ -107,7 +119,7 @@ func (c *ConfigurerXML)configure(sm *StateMachine) {
 }
 
 // parse state   
-func parseState(p *xml.Decoder, e xml.StartElement, sm *StateMachine, useDefaultState bool){
+func parseState(p *xml.Decoder, e xml.StartElement, sm *StateMachine, useDefaultState bool) (err error){
 	stateID := getAttr(e, "id")
 	
 	state := sm.getState(stateID)
@@ -123,7 +135,9 @@ func parseState(p *xml.Decoder, e xml.StartElement, sm *StateMachine, useDefault
 		sm.AddTimeout(stateID, int(parseInt(timeout)))
 	}
 	
-    for t, err := p.Token(); err == nil; t, err = p.Token() {
+	var parseEnd bool
+	var t xml.Token
+    for t, err = p.Token(); err == nil && !parseEnd; t, err = p.Token() {
         switch token := t.(type) {
         	case xml.StartElement:
         		switch token.Name.Local {
@@ -135,35 +149,48 @@ func parseState(p *xml.Decoder, e xml.StartElement, sm *StateMachine, useDefault
         				parseTransition(token, stateID, sm)
         		}
         	case xml.EndElement:
-        		break	
+        		if token.Name.Local == "state" {
+        			parseEnd = true	
+        		}
         }		
 	}
+    return
 }
 
-func parseOnEntryAction(p *xml.Decoder, stateID string, sm *StateMachine){
-    for t, err := p.Token(); err == nil; t, err = p.Token() {
+func parseOnEntryAction(p *xml.Decoder, stateID string, sm *StateMachine) (err error){
+	var parseEnd bool
+	var t xml.Token
+	var a Action
+    for t, err = p.Token(); err == nil && !parseEnd; t, err = p.Token() {
         switch token := t.(type) {
         	case xml.StartElement:
         		if token.Name.Local == "action" {
-        			sm.AddOnEntry(stateID, parseAction(p, token))
+        			a, err = parseAction(p, token)
+        			if err == nil { sm.AddOnEntry(stateID, a) }
         		}	
         	case xml.EndElement:
-        		break	
+        		parseEnd = true	
         }		
 	}
+    return
 }
 
-func parseOnExitAction(p *xml.Decoder, stateID string, sm *StateMachine){
-    for t, err := p.Token(); err == nil; t, err = p.Token() {
+func parseOnExitAction(p *xml.Decoder, stateID string, sm *StateMachine) (err error){
+	var parseEnd bool
+	var t xml.Token
+	var a Action
+    for t, err = p.Token(); err == nil && !parseEnd; t, err = p.Token() {
         switch token := t.(type) {
         	case xml.StartElement:
         		if token.Name.Local == "action" {
-        			sm.AddOnExit(stateID, parseAction(p, token))
+        			a, err = parseAction(p, token)
+        			if err == nil { sm.AddOnEntry(stateID, a) }
         		}	
         	case xml.EndElement:
-        		break	
+        		parseEnd = true	
         }		
 	}
+    return
 }
 
 func parseTransition(e xml.StartElement, stateID string, sm *StateMachine){
@@ -175,14 +202,14 @@ func parseTransition(e xml.StartElement, stateID string, sm *StateMachine){
 	sm.AddTransition(t)
 }
 
-func parseAction(p *xml.Decoder, e xml.StartElement) Action{
-	a := Action{}
+func parseAction(p *xml.Decoder, e xml.StartElement) (a Action, err error){
 	a.Name = getAttr(e, "name")
 	a.Parameters = make([]Any, 1)
 	
 	var pValue string
-	var inPara bool
-    for t, err := p.Token(); err == nil; t, err = p.Token() {
+	var inPara, parseEnd bool
+	var t xml.Token
+    for t, err = p.Token(); err == nil && !parseEnd; t, err = p.Token() {
         switch token := t.(type) {
         	case xml.StartElement:
         		if token.Name.Local == "para" {
@@ -198,12 +225,12 @@ func parseAction(p *xml.Decoder, e xml.StartElement) Action{
         			a.Parameters = append(a.Parameters, pValue)
         			inPara = false
         		}else if token.Name.Local == "action" {
-        			break
+        			parseEnd = true
         		}
         }		
 	}
 	
-	return a
+	return
 }
 
 func getAttr(e xml.StartElement, name string) string{
