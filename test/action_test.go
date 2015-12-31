@@ -6,10 +6,9 @@ import (
     . ".."
 )
 
-var actionTestResult string = ""
-
 // action dispatcher
 type testDispatcher struct{
+	result string
 }	
 
 func (d *testDispatcher) Dispatch(a Action, c *Context){
@@ -27,12 +26,13 @@ func (d *testDispatcher) Dispatch(a Action, c *Context){
 	for _, p := range a.Parameters {
 		sb += reflect.ValueOf(p).String() + "|"
 	}
-	actionTestResult += sb
+	d.result += sb
 }
 
 // test onEntry action
 func TestOnEntryAction(t *testing.T){
-	sm := NewStateMachine(nil, &testDispatcher{})
+	d := &testDispatcher{}
+	sm := NewStateMachine(nil, d)
 	sm.AddStates(states)
 	sm.SetInitialStateID("s1")
 	sm.AddTransition(Transition{"s1", "s2", "e1", ""})
@@ -42,22 +42,23 @@ func TestOnEntryAction(t *testing.T){
 	
 	// one action
 	exp := "s2|e1|a1|"
-	actionTestResult = ""
+	d.result = ""
 	sm.SendEvent(e1)
-	verify(t, "TestOnEntryAction 1", actionTestResult, exp)
+	verify(t, "TestOnEntryAction 1", d.result, exp)
 	
 	// two actions
 	sm.AddOnEntry("s1", Action{"a2", nil})
 	sm.AddOnEntry("s1", Action{"a3", nil})
 	exp = "s1|e2|a2|" + "s1|e2|a3|";
-	actionTestResult = "";
+	d.result = "";
 	sm.SendEvent(e2)
-	verify(t, "TestOnEntryAction 2", actionTestResult, exp)
+	verify(t, "TestOnEntryAction 2", d.result, exp)
 }
 
 // test onExit action
 func TestOnExitAction(t *testing.T){
-	sm := NewStateMachine(nil, &testDispatcher{})
+	d := &testDispatcher{}
+	sm := NewStateMachine(nil, d)
 	sm.AddStates(states)
 	sm.SetInitialStateID("s1")
 	sm.AddTransition(Transition{"s1", "s2", "e1", ""})
@@ -67,22 +68,23 @@ func TestOnExitAction(t *testing.T){
 	
 	// one action
 	exp := "s1|e1|a3|";
-	actionTestResult = "";
+	d.result = "";
 	sm.SendEvent(e1)
-	verify(t, "TestOnExitAction 1", actionTestResult, exp)
+	verify(t, "TestOnExitAction 1", d.result, exp)
 	
 	// two actions
 	sm.AddOnExit("s2", Action{"a4", nil})
 	sm.AddOnExit("s2", Action{"a5", nil})
 	exp = "s2|e2|a4|" + "s2|e2|a5|";
-	actionTestResult = "";
+	d.result = "";
 	sm.SendEvent(e2)
-	verify(t, "TestOnExitAction 2", actionTestResult, exp)
+	verify(t, "TestOnExitAction 2", d.result, exp)
 }
 
 // test onEntry and onExit action
 func TestAction(t *testing.T){
-	sm := NewStateMachine(nil, &testDispatcher{})
+	d := &testDispatcher{}
+	sm := NewStateMachine(nil, d)
 	sm.AddStates(states)
 	sm.SetInitialStateID("s1")
 	sm.AddTransition(Transition{"s1", "s2", "e1", ""})
@@ -93,41 +95,44 @@ func TestAction(t *testing.T){
 	sm.Start()
 	
 	exp := "s1|e1|a3|" + "s1|e1|a4|" + "s2|e1|a1|" + "s2|e1|a2|";
-	actionTestResult = "";
+	d.result = "";
 	sm.SendEvent(e1)
-	verify(t, "TestAction", actionTestResult, exp)
+	verify(t, "TestAction", d.result, exp)
 }
 
 // test onEntry action when startup
 func TestOnEntryActionOnStart(t *testing.T){
-	sm := NewStateMachine(nil, &testDispatcher{})
+	d := &testDispatcher{}
+	sm := NewStateMachine(nil, d)
 	sm.AddStates(states)
 	sm.SetInitialStateID("s1")
 	sm.AddOnEntry("s1", Action{"a1", nil})
 	
 	exp := "s1|nil|a1|";
-	actionTestResult = "";
+	d.result = "";
 	sm.Start()
-	verify(t, "TestOnEntryActionOnStart", actionTestResult, exp)
+	verify(t, "TestOnEntryActionOnStart", d.result, exp)
 }
 
 // test onExit action when stop
 func TestOnExitActionOnStop(t *testing.T){
-	sm := NewStateMachine(nil, &testDispatcher{})
+	d := &testDispatcher{}
+	sm := NewStateMachine(nil, d)
 	sm.AddStates(states)
 	sm.SetInitialStateID("s1")
 	sm.AddOnExit("s1", Action{"a1", nil})
 	sm.Start()
 	
 	exp := "s1|nil|a1|";
-	actionTestResult = "";
+	d.result = "";
 	sm.Stop()
-	verify(t, "TestOnExitActionOnStop", actionTestResult, exp)
+	verify(t, "TestOnExitActionOnStop", d.result, exp)
 }
 
 // test action parameters
 func TestActionParameters(t *testing.T){
-	sm := NewStateMachine(nil, &testDispatcher{})
+	d := &testDispatcher{}
+	sm := NewStateMachine(nil, d)
 	sm.AddStates(states)
 	sm.SetInitialStateID("s1")
 	sm.AddTransition(Transition{"s1", "s2", "e1", ""})
@@ -139,7 +144,7 @@ func TestActionParameters(t *testing.T){
 	sm.Start()
 	
 	exp := "s1|e1|a2|v1|" + "s2|e1|a1|v1|";
-	actionTestResult = "";
+	d.result = "";
 	sm.SendEvent(e1)
-	verify(t, "TestActionParameters", actionTestResult, exp)
+	verify(t, "TestActionParameters", d.result, exp)
 }
