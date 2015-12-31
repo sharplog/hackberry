@@ -2,6 +2,7 @@ package test
 
 import (
     "testing"
+    "strings"
     "reflect"
     . ".."
 )
@@ -52,7 +53,8 @@ func verifyPanic(t *testing.T, fun string, errType Any, expectedMsg string){
 	}
 
     errMsg := reflect.ValueOf(e).Elem().FieldByName(msgFeild)
-    if errMsg.String() != expectedMsg {
+    // heading is ok
+    if strings.Index(errMsg.String(), expectedMsg) != 0 {
     	t.Errorf("%s: expected error message [%s], but [%s]!", fun, expectedMsg, errMsg)
     	return
     }
