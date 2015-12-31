@@ -1,21 +1,18 @@
 {"initialstate":"s1",
- "defaultstate":false,
  "states":[
    {"id":"s1",
-     "onexit":{
-       "actions":[
+     "onexit":[
          {"name":"a1.M1"}
-       ]}
+       ],
      "transtions":[
        {"event":"e1", "target":"s2"}
      ]},
    {"id":"s2",
-     "onentry":{
-       "actions":[
+     "onentry":[
          {"name":"a1.M2",
           "paras":["abc", 123, true, 456.789]},
          {"name":"a2.M1"}
-       ]}
+       ],
      "transitions":[
        {"event":"e2", "cond":"x=1", "target":"s3"},
        {"event":"e2", "cond":"x=0", "target":"s1"}

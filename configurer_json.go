@@ -15,6 +15,36 @@ func NewConfigurerJSON(file string) *ConfigurerJSON{
 	return &ConfigurerJSON{file}
 }
 
+// state machine for unmarshal json
+type jStateMachine struct{
+	Defaultstate bool
+	Initialstate string
+	Timeoutstate string
+	States []jState
+}
+
+// state for unmarshal json
+type jState struct{
+	Id string
+	Timeout float64
+	Onentry []jAction
+	Onexit []jAction
+	Transitions []jTransition
+}
+
+// action for unmarshal json
+type jAction struct{
+	Name string
+	Paras []Any
+}
+
+// transition for unmarshal json
+type jTransition struct{
+	Event string
+	Cond string
+	Target string
+}
+
 // load configuration to state machine
 func (c *ConfigurerJSON)configure(sm *StateMachine) {
 	if sm == nil {
@@ -30,51 +60,67 @@ func (c *ConfigurerJSON)configure(sm *StateMachine) {
 	inputReader := bufio.NewReader(input)
 	p := json.NewDecoder(inputReader)
 	
-	var root map[string]interface{}
-	if err := p.Decode(&root); err != nil{
+	var jsm jStateMachine
+	
+	// default value is true
+	jsm.Defaultstate = true
+	if err := p.Decode(&jsm); err != nil{
 		panic(&ConfigError{"Fail to parse config file: " + err.Error()})
 	}
 	
-	// deal with type assertion failure
-	defer func(){
-	  	if e := recover(); e != nil{
-	  		panic(&ConfigError{"Fail to parse config file: " + err.Error()})
-	  	}
-  	}()
-	
-	useDefaultState := true
-	if root["defaultstate"] != nil {
-		useDefaultState = root["defaultstate"].(bool)
+	for _, s := range jsm.States {
+		c.parseState(s, sm, jsm.Defaultstate)
 	}
 	
-	states, _ := root["states"].([]Any)
-	c.parseState(states, sm, useDefaultState)
-	
-	initialStateID := c.transToStr(root["initialstate"])
-	timeoutStateID := c.transToStr(root["timeoutstate"])
-	
-    if initialStateID != "" && sm.getState(initialStateID) == nil {
-    	panic(&ConfigError{"Has no initial state [" + initialStateID + "]."})
+    if jsm.Initialstate != "" && sm.getState(jsm.Initialstate) == nil {
+    	panic(&ConfigError{"Has no initial state [" + jsm.Initialstate + "]."})
     }
-    if timeoutStateID != "" && sm.getState(timeoutStateID) == nil {
-    	panic(&ConfigError{"Has no timeout state [" + timeoutStateID + "]."})
+    if jsm.Timeoutstate != "" && sm.getState(jsm.Timeoutstate) == nil {
+    	panic(&ConfigError{"Has no timeout state [" + jsm.Timeoutstate + "]."})
     }
     
-    sm.SetInitialStateID(initialStateID)
-    sm.SetDefaultTimeoutStateID(timeoutStateID)
-
+    sm.SetInitialStateID(jsm.Initialstate)
+    sm.SetDefaultTimeoutStateID(jsm.Timeoutstate)
 }
 
-func (c *ConfigurerJSON)parseState(states []Any, sm *StateMachine, useDefaultState bool){
-	if states == nil { return }
-	
-	
-}
-
-
-func (c *ConfigurerJSON)transToStr(v Any) string{
-	if v != nil {
-		return v.(string)
+func (c *ConfigurerJSON)parseState(s jState, sm *StateMachine, useDefaultState bool){
+	state := sm.getState(s.Id)
+	if state == nil && useDefaultState {
+		sm.AddState(&DefaultState{s.Id})
+		state = sm.getState(s.Id)
 	}
-	return ""
+	if state == nil {
+		panic(&ConfigError{"Has no state [" + s.Id + "]."})
+	}
+	
+	if s.Timeout > 0 {
+		sm.AddTimeout(s.Id, int(s.Timeout))
+	}
+	
+	for _, ja := range s.Onentry{
+		sm.AddOnEntry(s.Id, c.parseAction(ja))
+	}
+	
+	for _, ja := range s.Onexit{
+		sm.AddOnExit(s.Id, c.parseAction(ja))
+	}
+		
+	for _, jt := range s.Transitions{
+		sm.AddTransition(c.parseTransition(s.Id, jt))
+	}
+
+}
+
+func (c *ConfigurerJSON)parseAction(ja jAction)(a Action){
+	a.Name = ja.Name
+	a.Parameters = ja.Paras
+	return
+}
+
+func (c *ConfigurerJSON)parseTransition(stateId string, jt jTransition)(t Transition){
+	t.SourceID = stateId
+	t.TargetID = jt.Target
+	t.EventName = jt.Event
+	t.Condition = jt.Cond
+	return
 }
