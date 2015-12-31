@@ -204,7 +204,7 @@ func parseTransition(e xml.StartElement, stateID string, sm *StateMachine){
 
 func parseAction(p *xml.Decoder, e xml.StartElement) (a Action, err error){
 	a.Name = getAttr(e, "name")
-	a.Parameters = make([]Any, 1)
+	a.Parameters = make([]Any, 0)
 	
 	var pValue string
 	var inPara, parseEnd bool

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml initialstate="s3">
+	<state id="s3">
+		<transition event="e3" target="s1" />
+	</state2>
+</scxml>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml initialstate="s1" defaultstate="false">
+	<state id="s1">
+		<transition event="e2" cond="x=1" target="s2" />
+	</state>
+	<state id="s2">
+		<transition event="e3" target="s1" />
+	</state>
+</scxml>

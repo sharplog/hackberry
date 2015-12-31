@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- defaultstate, default true, means use DefaultState as state type.
+	When defautstate is true, it need not init state for state machine -->
+<scxml initialstate="s1">
+	<state id="s1">
+		<!-- action when enter state -->
+		<transition event="e1" target="s2" />
+	</state>
+	<state id="s2">
+		<transition event="e2" target="s3" />
+		<transition event="e2" target="s1" />
+	</state>
+	<state id="s3">
+		<transition event="e3" target="s1" />
+	</state>
+</scxml>
