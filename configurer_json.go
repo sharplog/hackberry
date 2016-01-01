@@ -7,83 +7,86 @@ import (
 )
 
 // Configurer to parse xml file
-type ConfigurerJSON struct{
-	file string
-}
-
-func NewConfigurerJSON(file string) *ConfigurerJSON{
-	return &ConfigurerJSON{file}
+type ConfigurerImpl struct{
+	csm stateMachine
 }
 
 // state machine for unmarshal json
-type jStateMachine struct{
+type stateMachine struct{
 	Defaultstate bool
 	Initialstate string
 	Timeoutstate string
-	States []jState
+	States []state
 }
 
 // state for unmarshal json
-type jState struct{
+type state struct{
 	Id string
 	Timeout float64
-	Onentry []jAction
-	Onexit []jAction
-	Transitions []jTransition
+	Onentry []action
+	Onexit []action
+	Transitions []transition
 }
 
 // action for unmarshal json
-type jAction struct{
+type action struct{
 	Name string
 	Paras []Any
 }
 
 // transition for unmarshal json
-type jTransition struct{
+type transition struct{
 	Event string
 	Cond string
 	Target string
 }
 
+func NewConfigurerJSON(file string) *ConfigurerImpl{
+	c := &ConfigurerImpl{}
+	c.csm.Defaultstate = true
+	c.parseStateMachineFromJSON(file)
+
+	return c
+}
+
 // load configuration to state machine
-func (c *ConfigurerJSON)configure(sm *StateMachine) {
+func (c *ConfigurerImpl)configure(sm *StateMachine) {
 	if sm == nil {
 		panic(&ConfigError{"State machine is nil!"})
 	}
 	
-	input, err := os.Open(c.file)
+	csm := c.csm
+	for _, s := range csm.States {
+		c.parseState(s, sm, csm.Defaultstate)
+	}
+	
+    if csm.Initialstate != "" && sm.getState(csm.Initialstate) == nil {
+    	panic(&ConfigError{"Has no initial state [" + csm.Initialstate + "]."})
+    }
+    if csm.Timeoutstate != "" && sm.getState(csm.Timeoutstate) == nil {
+    	panic(&ConfigError{"Has no timeout state [" + csm.Timeoutstate + "]."})
+    }
+    
+    sm.SetInitialStateID(csm.Initialstate)
+    sm.SetDefaultTimeoutStateID(csm.Timeoutstate)
+}
+
+func (c *ConfigurerImpl)parseStateMachineFromJSON(file string){
+	input, err := os.Open(file)
     if err != nil {
-    	panic(&ConfigError{"An error occurred on opening file: " + c.file})
+    	panic(&ConfigError{"An error occurred on opening file: " + file})
     }
     defer input.Close()
 
 	inputReader := bufio.NewReader(input)
 	p := json.NewDecoder(inputReader)
 	
-	var jsm jStateMachine
-	
-	// default value is true
-	jsm.Defaultstate = true
-	if err := p.Decode(&jsm); err != nil{
+	if err := p.Decode(&c.csm); err != nil{
 		panic(&ConfigError{"Fail to parse config file: " + err.Error()})
 	}
-	
-	for _, s := range jsm.States {
-		c.parseState(s, sm, jsm.Defaultstate)
-	}
-	
-    if jsm.Initialstate != "" && sm.getState(jsm.Initialstate) == nil {
-    	panic(&ConfigError{"Has no initial state [" + jsm.Initialstate + "]."})
-    }
-    if jsm.Timeoutstate != "" && sm.getState(jsm.Timeoutstate) == nil {
-    	panic(&ConfigError{"Has no timeout state [" + jsm.Timeoutstate + "]."})
-    }
-    
-    sm.SetInitialStateID(jsm.Initialstate)
-    sm.SetDefaultTimeoutStateID(jsm.Timeoutstate)
 }
 
-func (c *ConfigurerJSON)parseState(s jState, sm *StateMachine, useDefaultState bool){
+func (c *ConfigurerImpl)parseState(s state, sm *StateMachine, useDefaultState bool){
 	state := sm.getState(s.Id)
 	if state == nil && useDefaultState {
 		sm.AddState(&DefaultState{s.Id})
@@ -97,30 +100,30 @@ func (c *ConfigurerJSON)parseState(s jState, sm *StateMachine, useDefaultState b
 		sm.AddTimeout(s.Id, int(s.Timeout))
 	}
 	
-	for _, ja := range s.Onentry{
-		sm.AddOnEntry(s.Id, c.parseAction(ja))
+	for _, a := range s.Onentry{
+		sm.AddOnEntry(s.Id, c.parseAction(a))
 	}
 	
-	for _, ja := range s.Onexit{
-		sm.AddOnExit(s.Id, c.parseAction(ja))
+	for _, a := range s.Onexit{
+		sm.AddOnExit(s.Id, c.parseAction(a))
 	}
 		
-	for _, jt := range s.Transitions{
-		sm.AddTransition(c.parseTransition(s.Id, jt))
+	for _, t := range s.Transitions{
+		sm.AddTransition(c.parseTransition(s.Id, t))
 	}
 
 }
 
-func (c *ConfigurerJSON)parseAction(ja jAction)(a Action){
+func (c *ConfigurerImpl)parseAction(ja action)(a Action){
 	a.Name = ja.Name
 	a.Parameters = ja.Paras
 	return
 }
 
-func (c *ConfigurerJSON)parseTransition(stateId string, jt jTransition)(t Transition){
+func (c *ConfigurerImpl)parseTransition(stateId string, tran transition)(t Transition){
 	t.SourceID = stateId
-	t.TargetID = jt.Target
-	t.EventName = jt.Event
-	t.Condition = jt.Cond
+	t.TargetID = tran.Target
+	t.EventName = tran.Event
+	t.Condition = tran.Cond
 	return
 }
