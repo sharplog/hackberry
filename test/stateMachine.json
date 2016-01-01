@@ -19,8 +19,7 @@
      ]},
    {"id":"s3",
      "transitions":[
-       {"event":"e3",
-        "target":"s1"}
+       {"event":"e3", "target":"s1"}
      ]}
  ]
 }

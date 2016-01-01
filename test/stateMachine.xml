@@ -4,26 +4,19 @@
 <scxml initialstate="s1" defaultstate="false">
 	<state id="s1">
 		<!-- action when exit state -->
-		<onexit>
-			<action name="a1.M1" />
-		</onexit>
+		<onexit name="a1.M1" />
 		<transition event="e1" target="s2" />
 	</state>
 	<state id="s2">
-		<!-- action when enter state -->
-		<onentry>
-			<!-- action that has parameters -->
-			<action name="a1.M2">
-				<para value="abc" />
-				<para value="123" />
-				
-				<para>true</para>
-				<para>456.789</para>
-			</action>
-			
-			<!-- action that has no parameter -->
-			<action name="a2.M1" />
+		<!-- action when enter state, has parameters -->
+		<onentry name="a1.M2">
+			<para>abc</para>
+			<para>123</para>
+			<para>true</para>
+			<para>456.789</para>
 		</onentry>
+		<!-- action that has no parameter -->
+		<onentry name="a2.M1" />	
 		
 		<!-- transtions that has condition -->
 		<transition event="e2" cond="x=1" target="s3" />

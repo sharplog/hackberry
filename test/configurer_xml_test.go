@@ -31,16 +31,16 @@ func TestConfigFileParseError(t *testing.T) {
 	sm.LoadConfig(cfg)
 }
 
-// root element is not scxml
-func TestConfigFileRootError(t *testing.T) {
-	exp := "Config file's root element name is not scxml."
-	defer verifyPanic(t, "TestConfigFileRootError", (*ConfigError)(nil), exp)
-	
-	file := dir + "stateMachine_rootError.xml"
-	sm := NewStateMachine(nil, nil)
-	cfg := NewConfigurerXML(file)
-	sm.LoadConfig(cfg)
-}
+//// root element is not scxml
+//func TestConfigFileRootError(t *testing.T) {
+//	exp := "Config file's root element name is not scxml."
+//	defer verifyPanic(t, "TestConfigFileRootError", (*ConfigError)(nil), exp)
+//	
+//	file := dir + "stateMachine_rootError.xml"
+//	sm := NewStateMachine(nil, nil)
+//	cfg := NewConfigurerXML(file)
+//	sm.LoadConfig(cfg)
+//}
 
 // don't use default State and state machine has no states.
 func TestConfigFileNoState(t *testing.T) {
@@ -121,4 +121,3 @@ func TestConfigFileParaCondition(t *testing.T) {
 	sm.SendEvent(e2)
 	verify(t, "TestConfigFileParaCondition 3",(*sm.GetCurrentState()).ID(), "s1")
 }
-
