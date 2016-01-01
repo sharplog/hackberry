@@ -5,17 +5,17 @@ import (
 )
 
 type ParseError struct{
-	Message string
+    Message string
 }
 
 type ConfigError struct{
-	Message string
+    Message string
 }
 
 type IllegalActionError struct{
-	Message string
+    Message string
 }
 
 type IllegalConditionError struct{
-	Message string
+    Message string
 }
