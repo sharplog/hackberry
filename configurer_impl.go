@@ -6,75 +6,8 @@ import (
     "encoding/json"
     "encoding/xml"
 )
-//<!-- xml config file format
-//    initialstate defines state machine initial state.
-//    defaultstate defines use DefaultState as state type or not. It is true default.
-//    If using DefaultState, it need not init state machine's state.
-//    timeoutstate defines default target state when timeout event happenning.
-//    if using timeout event, should set state machine's timeoutEvent property.
-// -->
-// 
-// <scxml initialstate="s1" timeoutstate="s3" defaultstate="true">
-//     <state id="s1" timeout="60">
-//         <!-- actions when entering state, has parameters -->
-//         <onentry name="ao1.m1">
-//             <para>abc</para>
-//             <para>123</para>
-//             <para>true</para>
-//             <para>456.789</para>
-//             <para>v1</para>
-//         </onentry>
-//         <!-- action has no parameter -->
-//         <onentry name="a2" />       
-//                
-//         <!-- actions when exiting state -->
-//         <onexit name="a3" />
-//         <transition event="e1" target="s2" />
-//     </state>
-//     <state id="s2">
-//         <!-- with condition -->
-//         <transition event="e2" cond="x=1" target="s3" />
-//         <transition event="e2" cond="x=0" target="s1" />
-//     </state>
-//     <!-- set timeout for state. should set state machine's timeoutEvent first. -->
-//     <state id="s3" timeout="30">
-//         <transition event="e3" target="s1" />
-//         <!-- timeoutEvent's name should be as the follow name, it is "timeout" here -->
-//         <transition event="timeout" target="s2" />
-//     </state>
-// </scxml>
 
-// JSON file format
-//{"initialstate":"s1",
-// "defaultstate":true,
-// "timeoutstate":"s3"    
-// "states":[
-//   {"id":"s1",
-//    "timeout":60
-//    "onexit":[
-//         {"name":"a1.M1"}
-//       ],
-//     "transtions":[
-//       {"event":"e1", "target":"s2"}
-//     ]},
-//   {"id":"s2",
-//     "onentry":[
-//         {"name":"a1.M2",
-//          "paras":["abc", 123, true, 456.789]},
-//         {"name":"a2.M1"}
-//       ],
-//     "transitions":[
-//       {"event":"e2", "cond":"x=1", "target":"s3"},
-//       {"event":"e2", "cond":"x=0", "target":"s1"}
-//     ]},
-//   {"id":"s3",
-//     "transitions":[
-//       {"event":"e3", "target":"s1"}
-//     ]}
-// ]
-//}
-
-// Configurer to parse xml file
+// Configurer can parse xml and json file to configure state machine.
 type ConfigurerImpl struct{
     csm stateMachine
 }
@@ -110,6 +43,37 @@ type transition struct{
     Target string        `xml:"target,attr"`
 }
 
+// NewConfigurerJSON parse json file to configure state machine. JSON file format like bellow:
+//	
+//	{"initialstate":"s1",
+//	 "defaultstate":true,
+//	 "timeoutstate":"s3"    
+//	 "states":[
+//	   {"id":"s1",
+//	    "timeout":60
+//	    "onexit":[
+//	         {"name":"a1.M1"}
+//	       ],
+//	     "transtions":[
+//	       {"event":"e1", "target":"s2"}
+//	     ]},
+//	   {"id":"s2",
+//	     "onentry":[
+//	         {"name":"a1.M2",
+//	          "paras":["abc", 123, true, 456.789]},
+//	         {"name":"a2.M1"}
+//	       ],
+//	     "transitions":[
+//	       {"event":"e2", "cond":"x=1", "target":"s3"},
+//	       {"event":"e2", "cond":"x=0", "target":"s1"}
+//	     ]},
+//	   {"id":"s3",
+//	     "transitions":[
+//	       {"event":"e3", "target":"s1"}
+//	     ]}
+//	 ]
+//	}
+//
 func NewConfigurerJSON(JSONfile string) *ConfigurerImpl{
     c := &ConfigurerImpl{}
     c.csm.Defaultstate = true
@@ -118,6 +82,45 @@ func NewConfigurerJSON(JSONfile string) *ConfigurerImpl{
     return c
 }
 
+// NewConfigurerXML parse json file to configure state machine. JSON file format like bellow:
+//	<!-- 
+//	    initialstate defines state machine initial state.
+//	    defaultstate defines use DefaultState as state type or not. It is true default.
+//	    If using DefaultState, it need not init state machine's state.
+//	    timeoutstate defines default target state when timeout event happenning.
+//	    if using timeout event, should set state machine's timeoutEvent property.
+//	 -->
+//	 
+//	 <scxml initialstate="s1" timeoutstate="s3" defaultstate="true">
+//	     <state id="s1" timeout="60">
+//	         <!-- actions when entering state, has parameters -->
+//	         <onentry name="ao1.m1">
+//	             <para>abc</para>
+//	             <para>123</para>
+//	             <para>true</para>
+//	             <para>456.789</para>
+//	             <para>v1</para>
+//	         </onentry>
+//	         <!-- action has no parameter -->
+//	         <onentry name="a2" />       
+//	                
+//	         <!-- actions when exiting state -->
+//	         <onexit name="a3" />
+//	         <transition event="e1" target="s2" />
+//	     </state>
+//	     <state id="s2">
+//	         <!-- with condition -->
+//	         <transition event="e2" cond="x=1" target="s3" />
+//	         <transition event="e2" cond="x=0" target="s1" />
+//	     </state>
+//	     <!-- set timeout for state. should set state machine's timeoutEvent first. -->
+//	     <state id="s3" timeout="30">
+//	         <transition event="e3" target="s1" />
+//	         <!-- timeoutEvent's name should be as the follow name, it is "timeout" here -->
+//	         <transition event="timeout" target="s2" />
+//	     </state>
+//	 </scxml>
+//
 func NewConfigurerXML(XMLfile string) *ConfigurerImpl{
     c := &ConfigurerImpl{}
     c.csm.Defaultstate = true
