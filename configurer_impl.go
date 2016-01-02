@@ -43,7 +43,7 @@ type transition struct{
     Target string        `xml:"target,attr"`
 }
 
-// NewConfigurerJSON parse json file to configure state machine. JSON file format like bellow:
+// NewConfigurerJSON parse json file to configure state machine. The json file format like bellow:
 //	
 //	{"initialstate":"s1",
 //	 "defaultstate":true,
@@ -82,7 +82,7 @@ func NewConfigurerJSON(JSONfile string) *ConfigurerImpl{
     return c
 }
 
-// NewConfigurerXML parse json file to configure state machine. JSON file format like bellow:
+// NewConfigurerXML parse xml file to configure state machine. The xml file format like bellow:
 //	<!-- 
 //	    initialstate defines state machine initial state.
 //	    defaultstate defines use DefaultState as state type or not. It is true default.
