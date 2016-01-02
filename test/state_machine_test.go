@@ -63,6 +63,7 @@ func verifyPanic(t *testing.T, fun string, errType Any, expectedMsg string){
 
 var s1, s2, s3, s4, s5, s6 State = &myState{"s1"}, &myState{"s2"}, &myState{"s3"}, &myState{"s4"}, &myState{"s5"}, &myState{"s6"}
 var e1, e2, e3, e4, e5, e6 Event = &myEvent{"e1"}, &myEvent{"e2"}, &myEvent{"e3"}, &myEvent{"e4"}, &myEvent{"e5"}, &myEvent{"e6"}
+var timeoutEvent Event = &myEvent{"timeoutEvt"}
 var states []State = []State{s1, s2, s3, s4, s5, s6}
 
 func TestStateMachine(t *testing.T) {

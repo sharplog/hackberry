@@ -4,7 +4,7 @@ import (
     "testing"
     "os"
     "fmt"
-    
+    "time"
     . ".."
 )
 
@@ -69,6 +69,7 @@ func TestConfigFileUseCustomizedState(t *testing.T) {
 	evaluator := NewDefaultConditionEvaluator()
 	sm := NewStateMachine(evaluator, dispatcher)
 	sm.AddStates(states)
+	sm.SetTimeoutEvent(timeoutEvent)
 	cfg := NewConfigurerXML(file)
 	sm.LoadConfig(cfg)
 }
@@ -105,6 +106,7 @@ func TestConfigFileParaCondition(t *testing.T) {
 	evaluator := NewDefaultConditionEvaluator()
 	sm := NewStateMachine(evaluator, dispatcher)
 	sm.AddStates(states)
+	sm.SetTimeoutEvent(timeoutEvent)
 	cfg := NewConfigurerXML(file)
 	sm.LoadConfig(cfg)
 	
@@ -120,4 +122,8 @@ func TestConfigFileParaCondition(t *testing.T) {
 	sm.GetContext().SetAttribute("x", "0")
 	sm.SendEvent(e2)
 	verify(t, "TestConfigFileParaCondition 3", sm.GetCurrentState().ID(), "s1")
+	
+	// default timeout state
+	time.Sleep(1200 * time.Millisecond)
+	verify(t, "TestConfigFileParaCondition 3", sm.GetCurrentState().ID(), "s4")
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- defaultstate, default true, means use DefaultState as state type.
 	When defautstate is true, it need not init state for state machine -->
-<scxml initialstate="s1" defaultstate="false">
-	<state id="s1">
+<scxml initialstate="s1" defaultstate="false" timeoutstate="s4">
+	<state id="s1" timeout="1">
 		<!-- action when exit state -->
 		<onexit name="a1.M1" />
 		<transition event="e1" target="s2" />
@@ -24,5 +24,8 @@
 	</state>
 	<state id="s3">
 		<transition event="e3" target="s1" />
+	</state>
+	<state id="s4">
+	   <transition event="e1" target="s1" />
 	</state>
 </scxml>
