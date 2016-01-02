@@ -15,9 +15,9 @@ func (d *testDispatcher) Dispatch(a Action, c *Context){
 	state := c.GetStateMachine().GetCurrentState()
 	event := c.GetStateMachine().GetEvent()
 	
-	sb := (*state).ID() + "|"
+	sb := state.ID() + "|"
 	if event != nil {
-		sb += (*event).Name()
+		sb += event.Name()
 	}else{
 		sb += "nil"
 	}

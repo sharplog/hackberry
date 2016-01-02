@@ -76,25 +76,25 @@ type StateMachine struct{
     initialStateID string
     
     // current state
-    currentState *State
+    currentState State
     
     // the previous state
-    previousState *State
+    previousState State
     
     // the next state
     // the next state is nil normally.
     // when transfering state, before convert to target state, the next state
     // is the target state
-    nextState *State
+    nextState State
     
     // the event trigger state machine
-    event *Event
+    event Event
 
     // context
     context Context
     
     // all states
-    states map[string]*State
+    states map[string]State
     
     // all transitions. Each state has a transition list
     transitions map[string][]Transition
@@ -132,7 +132,7 @@ func NewStateMachine(conditionEvaluator ConditionEvaluator, actionDispatcher Act
     sm := StateMachine{}
     
     sm.context = Context{&sm, make(map[Any]Any)}
-    sm.states = make(map[string]*State)
+    sm.states = make(map[string]State)
     sm.transitions = make(map[string][]Transition)
     sm.entryActions = make(map[string][]Action)
     sm.exitActions = make(map[string][]Action)
@@ -151,14 +151,14 @@ func (sm *StateMachine) GetContext() *Context{
 
 // add state to state machine
 func (sm *StateMachine) AddState(s State) *StateMachine{
-    sm.states[s.ID()] = &s
+    sm.states[s.ID()] = s
     return sm
 }
 
 // add some states to state machine
 func (sm *StateMachine) AddStates(ss []State) *StateMachine{
     for i := 0; i < len(ss); i++{
-        sm.states[ss[i].ID()] = &ss[i]
+        sm.states[ss[i].ID()] = ss[i]
     }
     return sm
 }
@@ -221,16 +221,16 @@ func (sm *StateMachine) SendEvent(event Event){
     
     if !sm.IsRunning() { return }
     
-    if target := sm.getTarget(&event); target != nil {
-        sm.transitState(&event, target);
+    if target := sm.getTarget(event); target != nil {
+        sm.transitState(event, target);
     }
 }
 
 // get target state by event. lock before call this method
-func (sm *StateMachine) getTarget(event *Event) *State{
-    trans := sm.transitions[(*sm.currentState).ID()]
+func (sm *StateMachine) getTarget(event Event) State{
+    trans := sm.transitions[sm.currentState.ID()]
     for _, t := range trans{
-        if (*event).Name() != t.EventName { continue }
+        if event.Name() != t.EventName { continue }
         
         // has condition, but not satisfy
         if "" != t.Condition && !sm.conditionEvaluator.IsSatisfied(t.Condition, &sm.context) {
@@ -241,7 +241,7 @@ func (sm *StateMachine) getTarget(event *Event) *State{
     }
 
     // default timeout transition
-    if sm.timeoutEvent != nil && sm.timeoutEvent.Name() == (*event).Name() {
+    if sm.timeoutEvent != nil && sm.timeoutEvent.Name() == event.Name() {
         return sm.states[sm.defaultTimeoutStateID]
     }
     return nil
@@ -249,14 +249,14 @@ func (sm *StateMachine) getTarget(event *Event) *State{
 
 // transform state machine to new state
 // lock before call this method
-func (sm *StateMachine) transitState(event *Event, target *State) {
+func (sm *StateMachine) transitState(event Event, target State) {
     sm.cancelTimeout();
     sm.event = event;
     sm.nextState = target;
     
     if sm.currentState != nil {
         // exit actions
-        actions := sm.exitActions[(*sm.currentState).ID()]
+        actions := sm.exitActions[sm.currentState.ID()]
         for _, a := range actions {
             sm.actionDispatcher.Dispatch(a, &sm.context)
         }
@@ -269,7 +269,7 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
     
     if sm.currentState != nil {
         // entry actions
-        actions := sm.entryActions[(*sm.currentState).ID()]
+        actions := sm.entryActions[sm.currentState.ID()]
         for _, a := range actions {
             sm.actionDispatcher.Dispatch(a, &sm.context)
         }
@@ -280,8 +280,8 @@ func (sm *StateMachine) transitState(event *Event, target *State) {
 }
 
 // create timeout
-func (sm *StateMachine) createTimeout(state *State) {
-    seconds := sm.timeouts[(*state).ID()]
+func (sm *StateMachine) createTimeout(state State) {
+    seconds := sm.timeouts[state.ID()]
     
     if seconds <= 0 { return }
     
@@ -348,29 +348,29 @@ func (sm *StateMachine) SetDefaultTimeoutStateID(stateID string) *StateMachine{
 }
 
 // get state machine's current state.
-func (sm *StateMachine) GetCurrentState() *State{
+func (sm *StateMachine) GetCurrentState() State{
     return sm.currentState;
 }
 
 // get state machine's previous state.
-func (sm *StateMachine) GetPreviousState() *State{
+func (sm *StateMachine) GetPreviousState() State{
     return sm.previousState;
 }
 
 // get state machine's next state. It's nil normally.
 // Only when transforming, the next state is the new target start 
-func (sm *StateMachine) GetNextState() *State{
+func (sm *StateMachine) GetNextState() State{
     return sm.nextState;
 }
 
 // the event recieved by state machine now
-func (sm *StateMachine) GetEvent() *Event{
+func (sm *StateMachine) GetEvent() Event{
     return sm.event;
 }
 
 // get state machine's all state
-func (sm *StateMachine) getStates() []*State{
-    states := make([]*State, len(sm.states))
+func (sm *StateMachine) getStates() []State{
+    states := make([]State, len(sm.states))
     
     i := 0
     for _, v := range sm.states {
@@ -381,7 +381,7 @@ func (sm *StateMachine) getStates() []*State{
 }
 
 // get state by id
-func (sm *StateMachine) getState(id string) *State{
+func (sm *StateMachine) getState(id string) State{
     return sm.states[id]
 }
 
@@ -391,8 +391,8 @@ func (sm *StateMachine) IsRunning() bool {
 }
 
 // get timeout of one state
-func (sm *StateMachine) GetTimeout(state *State) int {
-    return sm.timeouts[(*state).ID()]
+func (sm *StateMachine) GetTimeout(state State) int {
+    return sm.timeouts[state.ID()]
 }
 
 

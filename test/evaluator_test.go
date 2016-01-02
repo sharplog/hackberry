@@ -22,37 +22,37 @@ func TestEvaluator(t *testing.T) {
 	sm.Start()
 	
 	sm.SendEvent(e1);
-	verify(t, "TestEvaluator 1", (*sm.GetCurrentState()).ID(), "s1")
+	verify(t, "TestEvaluator 1", sm.GetCurrentState().ID(), "s1")
 	sm.GetContext().SetAttribute("x", "0");
 	sm.SendEvent(e1);
-	verify(t, "TestEvaluator 2", (*sm.GetCurrentState()).ID(), "s2")
+	verify(t, "TestEvaluator 2", sm.GetCurrentState().ID(), "s2")
 	sm.SendEvent(e2);
-	verify(t, "TestEvaluator 3", (*sm.GetCurrentState()).ID(), "s3")
+	verify(t, "TestEvaluator 3", sm.GetCurrentState().ID(), "s3")
 	sm.GetContext().SetAttribute("x", 3.0);
 	sm.SendEvent(e3);
-	verify(t, "TestEvaluator 4", (*sm.GetCurrentState()).ID(), "s2")
+	verify(t, "TestEvaluator 4", sm.GetCurrentState().ID(), "s2")
 	sm.GetContext().SetAttribute("x", nil);
 	sm.SendEvent(e4);
-	verify(t, "TestEvaluator 5", (*sm.GetCurrentState()).ID(), "s2")
+	verify(t, "TestEvaluator 5", sm.GetCurrentState().ID(), "s2")
 	sm.GetContext().SetAttribute("x", false);
 	sm.SendEvent(e4);
-	verify(t, "TestEvaluator 6", (*sm.GetCurrentState()).ID(), "s4")
+	verify(t, "TestEvaluator 6", sm.GetCurrentState().ID(), "s4")
 	sm.GetContext().SetAttribute("x", true);
 	sm.SendEvent(e4);
-	verify(t, "TestEvaluator 7", (*sm.GetCurrentState()).ID(), "s3")
+	verify(t, "TestEvaluator 7", sm.GetCurrentState().ID(), "s3")
 	sm.Stop();
 	
 	sm.Start();
 	sm.GetContext().SetAttribute("x", int8(1));
 	sm.SendEvent(e1);
-	verify(t, "TestEvaluator 8", (*sm.GetCurrentState()).ID(), "s3")
+	verify(t, "TestEvaluator 8", sm.GetCurrentState().ID(), "s3")
 	sm.SendEvent(e4);
-	verify(t, "TestEvaluator 9", (*sm.GetCurrentState()).ID(), "s3")
+	verify(t, "TestEvaluator 9", sm.GetCurrentState().ID(), "s3")
 	sm.GetContext().SetAttribute("y", "abcd");
 	sm.SendEvent(e4);
-	verify(t, "TestEvaluator 10", (*sm.GetCurrentState()).ID(), "s3")
+	verify(t, "TestEvaluator 10", sm.GetCurrentState().ID(), "s3")
 	sm.GetContext().SetAttribute("y", "abc");
 	sm.SendEvent(e4);
-	verify(t, "TestEvaluator 11", (*sm.GetCurrentState()).ID(), "s4")
+	verify(t, "TestEvaluator 11", sm.GetCurrentState().ID(), "s4")
 }
 

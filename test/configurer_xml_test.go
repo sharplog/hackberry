@@ -119,5 +119,5 @@ func TestConfigFileParaCondition(t *testing.T) {
 	
 	sm.GetContext().SetAttribute("x", "0")
 	sm.SendEvent(e2)
-	verify(t, "TestConfigFileParaCondition 3",(*sm.GetCurrentState()).ID(), "s1")
+	verify(t, "TestConfigFileParaCondition 3", sm.GetCurrentState().ID(), "s1")
 }

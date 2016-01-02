@@ -79,13 +79,13 @@ func TestStateMachine(t *testing.T) {
 	sm.SetInitialStateID("s1");
 	sm.Start();
 	sm.SendEvent(e1)
-	verify(t, "TestStateMachine 1", (*sm.GetCurrentState()).ID(), "s2")
+	verify(t, "TestStateMachine 1", sm.GetCurrentState().ID(), "s2")
 	sm.SendEvent(e2)
-	verify(t, "TestStateMachine 2", (*sm.GetCurrentState()).ID(), "s3")
+	verify(t, "TestStateMachine 2", sm.GetCurrentState().ID(), "s3")
 	sm.SendEvent(e3)
-	verify(t, "TestStateMachine 3", (*sm.GetCurrentState()).ID(), "s1")
+	verify(t, "TestStateMachine 3", sm.GetCurrentState().ID(), "s1")
 	sm.SendEvent(e1)
-	verify(t, "TestStateMachine 4", (*sm.GetCurrentState()).ID(), "s2")
+	verify(t, "TestStateMachine 4", sm.GetCurrentState().ID(), "s2")
 }
 
 func TestStart(t *testing.T){
@@ -103,13 +103,13 @@ func TestStart(t *testing.T){
 	sm.Start();
 	
 	// after staring, the state is initial state and the event is nil
-	verify(t, "TestStart 3", (*sm.GetCurrentState()).ID(), "s1")
+	verify(t, "TestStart 3", sm.GetCurrentState().ID(), "s1")
 	verifyNil(t, "TestStart 4", sm.GetEvent())
 	
 	// receive event
 	sm.SendEvent(e1);
-	verify(t, "TestStart 5", (*sm.GetCurrentState()).ID(), "s2");
-	verify(t, "TestStart 6", (*sm.GetEvent()).Name(), "e1")
+	verify(t, "TestStart 5", sm.GetCurrentState().ID(), "s2");
+	verify(t, "TestStart 6", sm.GetEvent().Name(), "e1")
 }
 
 func TestStop(t *testing.T){
