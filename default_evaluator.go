@@ -5,6 +5,7 @@ import (
     "strings"
 )
 
+// The supported operators in default condition evaluator. There are only six operators now.
 const (
     OPERATOR_EQ string = "="
     OPERATOR_NE string = "!="
@@ -14,19 +15,22 @@ const (
     OPERATOR_GE string = ">="
 )
 
-// a simple condition evaluator
-// condition pattern: {attribute name}{operator}{value}
-// support six operation: =, !=, <, <=, > and >=
-// the type of attribute include: bool, int8, int16, int32, int64, int
-// uint8, uint16, uint32, uint64, uint, float32, float64, string
+// A simple condition evaluator
 type defaultConditionEvaluator struct{
     
 }
 
+// NewDefaultConditionEvaluator create a default condition evaluator.
+// It supports condition pattern like {attribute name}{operator}{value}.
+// It supports six operations now: =, !=, <, <=, > and >=
+// The types of attribute include: bool, int8, int16, int32, int64, int
+// uint8, uint16, uint32, uint64, uint, float32, float64, string
 func NewDefaultConditionEvaluator() *defaultConditionEvaluator{
     return &defaultConditionEvaluator{}
 }
 
+// IsSatisfied implements the method of ConditionEvaluator interface.
+// It uses the attribute in the context to judge if the condition is satisfied or not.
 func (ce *defaultConditionEvaluator) IsSatisfied(condition string, context *Context) bool{
     op := getOperator(condition)
     cs := strings.Split(condition, op)
@@ -67,7 +71,7 @@ func (ce *defaultConditionEvaluator) IsSatisfied(condition string, context *Cont
             return compareString(v, value, op)
         default:
             msg := fmt.Sprintf("Unsupported value type [%T] for condition [%s].", v, condition)
-            panic(&IllegalConditionError{msg})    
+            panic(&ConditionError{msg})    
     }
 }
 
@@ -84,7 +88,7 @@ func getOperator(condition string) string{
         }
     }
     
-    panic(&IllegalConditionError{"Unsupported operator of condition [" + condition + "]."})
+    panic(&ConditionError{"Unsupported operator of condition [" + condition + "]."})
 }
 
 func compareBool(v1, v2 bool, op string) bool{
@@ -94,7 +98,7 @@ func compareBool(v1, v2 bool, op string) bool{
         case OPERATOR_NE :
             return v1 != v2
         default:
-            panic(&IllegalConditionError{"Unsupported bool operation [" + op + "]."})
+            panic(&ConditionError{"Unsupported bool operation [" + op + "]."})
     }
 }
 

@@ -34,13 +34,6 @@ type Configurer interface{
     configure(sm *StateMachine)
 }
 
-// state machine's context
-type Context struct{
-    stateMachine *StateMachine
-    
-    attributes map[Any]Any
-}
-
 // transition
 type Transition struct{
     // source state id
@@ -396,22 +389,30 @@ func (sm *StateMachine) GetTimeout(state State) int {
 }
 
 
-// get state machine from its context
-func (c Context) GetStateMachine() *StateMachine{
+// Context is the state machine's context. Application can set some attributes in it,
+// and get state machine instance from it.
+type Context struct{
+    stateMachine *StateMachine
+    
+    attributes map[Any]Any
+}
+
+// GetStateMachine return the state machine instance.
+func (c *Context) GetStateMachine() *StateMachine{
     return c.stateMachine
 }
 
-// get state machine from its context
-func (c Context) GetAttributes() map[Any]Any{
+// GetAttributes return all attributes in the context.
+func (c *Context) GetAttributes() map[Any]Any{
     return c.attributes
 }
 
-// get attribute from context
-func (c Context) GetAttribute(key Any) Any{
+// GetAttribute return the attribute value by key get attribute from context.
+func (c *Context) GetAttribute(key Any) Any{
     return c.attributes[key]
 }
 
-// set attribute into context
-func (c Context) SetAttribute(key, value Any) {
+// SetAttribute set attribute into the context.
+func (c *Context) SetAttribute(key, value Any) {
     c.attributes[key] = value
 }

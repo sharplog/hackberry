@@ -25,19 +25,19 @@ func (ad *defaultActionDispatcher)AddActionExecutor(name string, executor Any) *
 func (ad *defaultActionDispatcher)Dispatch(a Action, context *Context){
     names := strings.Split(a.Name, `.`)
     if len(names) != 2 {
-        panic(&IllegalActionError{"Action name format should be like objname.method, but [" + a.Name + "]."})
+        panic(&ActionError{"Action name format should be like objname.method, but [" + a.Name + "]."})
     }
     
     execName := names[0]
     methodName := names[1];
     executor := ad.executors[execName]
     if executor == nil {
-        panic(&IllegalActionError{"Has no action executor for [" + execName + "]."})
+        panic(&ActionError{"Has no action executor for [" + execName + "]."})
     }
     
     method := reflect.ValueOf(executor).MethodByName(methodName)
     if !method.IsValid() {
-        panic(&IllegalActionError{"Has no method [" + a.Name + "]."})
+        panic(&ActionError{"Has no method [" + a.Name + "]."})
     }
     
     methodS, _ := reflect.TypeOf(executor).MethodByName(methodName)
@@ -45,7 +45,7 @@ func (ad *defaultActionDispatcher)Dispatch(a Action, context *Context){
     
     // NumIn take receiver as the first parameter
     if methodT.NumIn() - 1 != len(a.Parameters) {
-        panic(&IllegalActionError{"Parameter number is not correct for method [" + a.Name + "]."})
+        panic(&ActionError{"Parameter number is not correct for method [" + a.Name + "]."})
     }
     
     params := make([]reflect.Value, len(a.Parameters))

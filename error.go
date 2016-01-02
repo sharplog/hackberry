@@ -12,10 +12,10 @@ type ConfigError struct{
     Message string
 }
 
-type IllegalActionError struct{
+type ActionError struct{
     Message string
 }
 
-type IllegalConditionError struct{
+type ConditionError struct{
     Message string
 }

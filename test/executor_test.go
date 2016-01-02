@@ -67,7 +67,7 @@ func TestMethodParameter(t *testing.T){
 
 func TestHasNoActionExecutor(t *testing.T){
 	expected := "Has no action executor for [ao2]."
-	defer verifyPanic(t, "TestHasNoActionExecutor", (*IllegalActionError)(nil), expected)
+	defer verifyPanic(t, "TestHasNoActionExecutor", (*ActionError)(nil), expected)
 	
 	dispatcher := NewDefaultActionDispatcher()
 	dispatcher.AddActionExecutor("ao1", &actionExecutor{})
@@ -81,7 +81,7 @@ func TestHasNoActionExecutor(t *testing.T){
 
 func TestHasNoActionMethod(t *testing.T){
 	expected := "Has no method [ao1.mm]."
-	defer verifyPanic(t, "TestHasNoActionMethod", (*IllegalActionError)(nil), expected)
+	defer verifyPanic(t, "TestHasNoActionMethod", (*ActionError)(nil), expected)
 	
 	dispatcher := NewDefaultActionDispatcher()
 	dispatcher.AddActionExecutor("ao1", &actionExecutor{})
