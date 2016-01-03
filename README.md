@@ -2,4 +2,4 @@
 A go lang state machine.
 
 # Online document
-https://godoc.org/github.com/sharplog/hackberry
+[![GoDoc](https://godoc.org/github.com/sharplog/hackberry?status.svg)](https://godoc.org/github.com/sharplog/hackberry)
