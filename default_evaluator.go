@@ -22,7 +22,7 @@ type defaultConditionEvaluator struct{
 
 // NewDefaultConditionEvaluator create a default condition evaluator.
 // It supports condition pattern like {attribute name}{operator}{value}.
-// It supports six operations now: =, !=, <, <=, > and >=
+// It supports six operations now: =, !=, <, <=, > and >=.
 // The types of attribute include: bool, int8, int16, int32, int64, int
 // uint8, uint16, uint32, uint64, uint, float32, float64, string.
 func NewDefaultConditionEvaluator() *defaultConditionEvaluator{

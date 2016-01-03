@@ -8,7 +8,7 @@ import (
 )
 
 // Configurer can parse xml and json file to configure state machine.
-type ConfigurerImpl struct{
+type configurerImpl struct{
     csm stateMachine
 }
 
@@ -74,8 +74,8 @@ type transition struct{
 //	 ]
 //	}
 //
-func NewConfigurerJSON(JSONfile string) *ConfigurerImpl{
-    c := &ConfigurerImpl{}
+func NewConfigurerJSON(JSONfile string) *configurerImpl{
+    c := &configurerImpl{}
     c.csm.Defaultstate = true
     c.parseStateMachineFromFile(JSONfile, "json")
 
@@ -121,8 +121,8 @@ func NewConfigurerJSON(JSONfile string) *ConfigurerImpl{
 //	     </state>
 //	 </scxml>
 //
-func NewConfigurerXML(XMLfile string) *ConfigurerImpl{
-    c := &ConfigurerImpl{}
+func NewConfigurerXML(XMLfile string) *configurerImpl{
+    c := &configurerImpl{}
     c.csm.Defaultstate = true
     c.parseStateMachineFromFile(XMLfile, "xml")
 
@@ -130,7 +130,7 @@ func NewConfigurerXML(XMLfile string) *ConfigurerImpl{
 }
 
 // load configuration to state machine
-func (c *ConfigurerImpl)configure(sm *StateMachine) {
+func (c *configurerImpl)configure(sm *StateMachine) {
     if sm == nil {
         panic(&ConfigError{"State machine is nil!"})
     }
@@ -151,7 +151,7 @@ func (c *ConfigurerImpl)configure(sm *StateMachine) {
     sm.SetDefaultTimeoutStateID(csm.Timeoutstate)
 }
 
-func (c *ConfigurerImpl)parseStateMachineFromFile(file, format string){
+func (c *configurerImpl)parseStateMachineFromFile(file, format string){
     input, err := os.Open(file)
     if err != nil {
         panic(&ConfigError{"An error occurred on opening file: " + file})
@@ -173,7 +173,7 @@ func (c *ConfigurerImpl)parseStateMachineFromFile(file, format string){
     }
 }
 
-func (c *ConfigurerImpl)parseState(s state, sm *StateMachine, useDefaultState bool){
+func (c *configurerImpl)parseState(s state, sm *StateMachine, useDefaultState bool){
     state := sm.getState(s.Id)
     if state == nil && useDefaultState {
         sm.AddState(&DefaultState{s.Id})
@@ -201,7 +201,7 @@ func (c *ConfigurerImpl)parseState(s state, sm *StateMachine, useDefaultState bo
 
 }
 
-func (c *ConfigurerImpl)parseAction(ac action)(a Action){
+func (c *configurerImpl)parseAction(ac action)(a Action){
     a.Name = ac.Name
     
     // action parsed from xml
@@ -216,7 +216,7 @@ func (c *ConfigurerImpl)parseAction(ac action)(a Action){
     return
 }
 
-func (c *ConfigurerImpl)parseTransition(stateId string, tran transition)(t Transition){
+func (c *configurerImpl)parseTransition(stateId string, tran transition)(t Transition){
     t.SourceID = stateId
     t.TargetID = tran.Target
     t.EventName = tran.Event

@@ -1,3 +1,17 @@
+// Package hackberry provides one state machine and its related concepts:
+//	State: state of state machine;
+//	Event: event that drives state machine changed from one state to another;
+//	Transition: one transition defines a changement of state machine, include source state, 
+//				target state, event and a optional condition that must be satisfied;
+//	Action: actions that will be executed when entering a state or exiting a state;
+//	ConditionEvaluator: evaluate the conditions in transition;
+//	ActionDispatcher: call action executor when entering or exiting state.
+// 
+// StateMachine has enough methods to be completely set manully, and also can be set with config file.
+//
+// This package also has default implementation for those interfaces, include DefaultState, DefaultEvent,
+// defaultConditionEvaluator, defaultActionDispatcher and configurerImpl.
+//
 package hackberry
 
 import (
@@ -5,53 +19,65 @@ import (
     "sync"
 )
 
+// Any is empty interface, can represent anything.
 type Any interface{}
 
-// state machine's state
+// State is state machine's state, it should be implemented by user, or using DefaultState. 
 type State interface{
     ID() string
 }
 
-// state machine's event
+// Event drives state machine transforming, it should be implemented by user, or using DefaultEvent. 
 type Event interface{
     Name() string
 }
 
-// condition evaluator
+// ConditionEvaluator judges the condition in transition is satisfied or not. 
+// It can be implemented by user, or using defaultConditionEvaluator.
 type ConditionEvaluator interface{
     // state machine call this method
     IsSatisfied(condition string, context *Context) bool
 }
 
-// action dispatcher
+// ActionDispatcher calls corresponding method when entering or exit state.
+// It can be implemented by user, or using defaultActionDispatcher.
 type ActionDispatcher interface{
     // state machine call this method
     Dispatch(action Action, context *Context)
 }
 
-// to load configuration
+// Configurer loads configuration into state machine.
+// It can be implemented by user, or using configurerImpl.
+// configurerImpl can parse xml file and json file.
 type Configurer interface{
     configure(sm *StateMachine)
 }
 
-// transition
+// Transition defines a state transformation.
 type Transition struct{
-    // source state id
+    // SourceID is the id of the state that transforming begin with.
     SourceID string
     
-    // target state id
+    // TargetID is the id of the state that transforming begin with.
     TargetID string
     
-    // event name
+    // EventName is the name of the event that drives state machine to transform.
     EventName string
     
-    // condition to transfer
+    // Condition restricts the transformation. Only when the condition is satisfied, 
+    // the transformation will happen.
     Condition string
 }
 
-// action
+// Action defines a action when entering or exiting a state.
 type Action struct{
+	// Name indicates the name of the method should be called.
+	// The name format should be fit ActionDispatcher. When using defaultActionDispatcher,
+	// the name should be like "aaa.bbb", aaa indicats a object and bbb indicates the object's method.
     Name string
+    
+    // Parameters should be delivered to the method when calling it. Before delivering, each parameter 
+    // convert to the type that the method need.
     Parameters []Any
 }    
 
@@ -340,28 +366,28 @@ func (sm *StateMachine) SetDefaultTimeoutStateID(stateID string) *StateMachine{
     return sm
 }
 
-// get state machine's current state.
+// GetCurrentState return state machine's current state.
 func (sm *StateMachine) GetCurrentState() State{
     return sm.currentState;
 }
 
-// get state machine's previous state.
+// GetPreviousState return state machine's previous state.
 func (sm *StateMachine) GetPreviousState() State{
     return sm.previousState;
 }
 
-// get state machine's next state. It's nil normally.
-// Only when transforming, the next state is the new target start 
+// GetNextState return state machine's next state. It's nil normally.
+// Only when transforming, the next state is the new target state. 
 func (sm *StateMachine) GetNextState() State{
     return sm.nextState;
 }
 
-// the event recieved by state machine now
+// GetEvent return the event recieved by state machine now.
 func (sm *StateMachine) GetEvent() Event{
     return sm.event;
 }
 
-// get state machine's all state
+// getStates return all states of the state machine. 
 func (sm *StateMachine) getStates() []State{
     states := make([]State, len(sm.states))
     
@@ -373,17 +399,17 @@ func (sm *StateMachine) getStates() []State{
     return states
 }
 
-// get state by id
+// getState return a state by id.
 func (sm *StateMachine) getState(id string) State{
     return sm.states[id]
 }
 
-// state machine is running or not
+// IsRunning return if the state machine is running or not.
 func (sm *StateMachine) IsRunning() bool {
     return sm.runStatus == STATUS_RUNNING
 }
 
-// get timeout of one state
+// GetTimeout return the timeout seconds of one state.
 func (sm *StateMachine) GetTimeout(state State) int {
     return sm.timeouts[state.ID()]
 }
