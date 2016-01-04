@@ -15,12 +15,12 @@ const (
     OPERATOR_GE string = ">="
 )
 
-// A simple condition evaluator
+// defaultConditionEvaluator is a simple condition evaluator.
 type defaultConditionEvaluator struct{
     
 }
 
-// NewDefaultConditionEvaluator create a default condition evaluator.
+// NewDefaultConditionEvaluator creates a default condition evaluator.
 // It supports condition pattern like {attribute name}{operator}{value}.
 // It supports six operations now: =, !=, <, <=, > and >=.
 // The types of attribute include: bool, int8, int16, int32, int64, int
@@ -75,6 +75,7 @@ func (ce *defaultConditionEvaluator) IsSatisfied(condition string, context *Cont
     }
 }
 
+// getOperator parses the condition string to get operator.
 func getOperator(condition string) string{
     operators := []string{OPERATOR_NE,
             OPERATOR_LE, OPERATOR_LT,
@@ -91,6 +92,7 @@ func getOperator(condition string) string{
     panic(&ConditionError{"Unsupported operator of condition [" + condition + "]."})
 }
 
+// compareBool compares two boolean.
 func compareBool(v1, v2 bool, op string) bool{
     switch op{
         case OPERATOR_EQ :
@@ -102,6 +104,7 @@ func compareBool(v1, v2 bool, op string) bool{
     }
 }
 
+// compareInt64 compares two integer.
 func compareInt64(v1, v2 int64, op string) bool{
     switch op{
         case OPERATOR_EQ :
@@ -121,6 +124,7 @@ func compareInt64(v1, v2 int64, op string) bool{
     }
 }
 
+// compareUint64 compares two unsigned integer.
 func compareUint64(v1, v2 uint64, op string) bool{
     switch op{
         case OPERATOR_EQ :
@@ -140,6 +144,7 @@ func compareUint64(v1, v2 uint64, op string) bool{
     }
 }
 
+// compareFloat64 compares two float.
 func compareFloat64(v1, v2 float64, op string) bool{
     switch op{
         case OPERATOR_EQ :
@@ -159,6 +164,7 @@ func compareFloat64(v1, v2 float64, op string) bool{
     }
 }
 
+// compareString compares two strings.
 func compareString(v1, v2, op string) bool{
     switch op{
         case OPERATOR_EQ :

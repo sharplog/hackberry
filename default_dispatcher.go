@@ -6,22 +6,23 @@ import (
     "reflect"
 )
 
-// a simple action executor, to dispatch actions
+// defaultActionDispatcher implements a simple action dispatcher, to execute actions.
 type defaultActionDispatcher struct{
     executors map[string]Any
 }
 
+// NewDefaultActionDispatcher creates a default action dispatcher.
 func NewDefaultActionDispatcher() *defaultActionDispatcher{
     return &defaultActionDispatcher{make(map[string]Any)}
 }
 
-// add a action executor to action dispatcher
+// AddActionExecutor adds a action executor to action dispatcher.
 func (ad *defaultActionDispatcher)AddActionExecutor(name string, executor Any) *defaultActionDispatcher{
     ad.executors[name] = executor
     return ad
 }
 
-// dispath a action
+// Dispatch dispathes a action to its corresponding method.
 func (ad *defaultActionDispatcher)Dispatch(a Action, context *Context){
     names := strings.Split(a.Name, `.`)
     if len(names) != 2 {
@@ -56,6 +57,7 @@ func (ad *defaultActionDispatcher)Dispatch(a Action, context *Context){
     method.Call(params)
 }
 
+// transValue converts a value to named type.
 func transValue(name string, v Any, action string) Any{
     s := fmt.Sprintf("%v", v)
     switch name{
